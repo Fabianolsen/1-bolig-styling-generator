@@ -223,6 +223,37 @@
   .program-empty { text-align:center; padding:50px 20px; color:var(--text2); font-size:14px; line-height:2; }
   .program-empty strong { color:var(--blue); display:block; font-size:18px; margin-bottom:8px; }
   .program-loading { text-align:center; padding:40px 20px; color:var(--text2); font-size:14px; }
+
+  /* ══ STREAK BAR ══ */
+  #streak-bar { background:var(--bg2); border-bottom:1px solid #e8ecf4; padding:8px 16px 10px; display:flex; align-items:center; justify-content:space-between; flex-shrink:0; box-shadow:0 1px 4px rgba(37,99,235,.04); }
+  .streak-left { display:flex; align-items:center; gap:8px; }
+  .streak-fire { font-size:20px; line-height:1; }
+  .streak-count { font-size:22px; font-weight:900; color:var(--blue); line-height:1; }
+  .streak-label { font-size:11px; color:var(--text2); font-weight:600; text-transform:uppercase; letter-spacing:.06em; margin-top:1px; }
+  .streak-badge { display:inline-flex; align-items:center; gap:4px; background:rgba(37,99,235,.1); border:1px solid rgba(37,99,235,.2); border-radius:20px; padding:4px 10px; font-size:12px; font-weight:700; color:var(--blue); }
+
+  /* ══ CONFETTI OVERLAY ══ */
+  #confetti-overlay { position:fixed; inset:0; z-index:9999; display:none; align-items:center; justify-content:center; pointer-events:none; }
+  #confetti-overlay.show { display:flex; }
+  #confetti-msg { background:var(--bg2); border-radius:20px; padding:22px 32px; text-align:center; box-shadow:0 8px 40px rgba(37,99,235,.25); animation:popIn .35s cubic-bezier(.34,1.56,.64,1); }
+  #confetti-msg .conf-emoji { font-size:40px; display:block; margin-bottom:6px; }
+  #confetti-msg .conf-title { font-size:20px; font-weight:900; color:var(--blue); }
+  #confetti-msg .conf-sub { font-size:13px; color:var(--text2); margin-top:4px; }
+  @keyframes popIn { from{opacity:0;transform:scale(.7)}to{opacity:1;transform:scale(1)} }
+  #confetti-canvas { position:fixed; inset:0; z-index:9998; pointer-events:none; display:none; }
+
+  /* ══ WATER TRACKER ══ */
+  .water-card { background:var(--bg2); border-radius:16px; padding:16px; margin-bottom:18px; box-shadow:var(--shadow); }
+  .water-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+  .water-title { font-size:14px; font-weight:800; color:var(--text); }
+  .water-count { font-size:13px; font-weight:700; color:var(--blue2); }
+  .water-progress { height:5px; background:#e8ecf4; border-radius:3px; margin-bottom:12px; overflow:hidden; }
+  .water-progress-fill { height:100%; border-radius:3px; background:linear-gradient(90deg,var(--blue3),var(--blue)); transition:width .4s ease; }
+  .water-glasses { display:flex; gap:8px; justify-content:center; flex-wrap:wrap; }
+  .water-glass { background:none; border:none; cursor:pointer; padding:4px; transition:transform .15s; -webkit-tap-highlight-color:transparent; }
+  .water-glass:active { transform:scale(.88); }
+  .water-glass svg { width:30px; height:38px; display:block; }
+  .water-goal-msg { text-align:center; font-size:12px; color:var(--blue); font-weight:700; margin-top:8px; min-height:18px; }
 </style>
 </head>
 <body>
@@ -284,6 +315,17 @@
       </div>
     </div>
 
+    <div id="streak-bar">
+      <div class="streak-left">
+        <span class="streak-fire">🔥</span>
+        <div>
+          <div class="streak-count" id="streak-num">0</div>
+          <div class="streak-label">ukers streak</div>
+        </div>
+      </div>
+      <div class="streak-badge" id="streak-badge-el">🎯 Kom i gang!</div>
+    </div>
+
     <div id="messages">
       <div class="welcome">
         <strong>Hei! Jeg er Coach Fabian 💪</strong>
@@ -329,6 +371,17 @@
     </div>
 
     <div class="log-list" id="log-list"></div>
+
+    <!-- WATER TRACKER -->
+    <div class="water-card">
+      <div class="water-header">
+        <div class="water-title">💧 Vanninntak i dag</div>
+        <div class="water-count" id="water-count-lbl">0 / 8 glass</div>
+      </div>
+      <div class="water-progress"><div class="water-progress-fill" id="water-prog" style="width:0%"></div></div>
+      <div class="water-glasses" id="water-glasses"></div>
+      <div class="water-goal-msg" id="water-goal-msg"></div>
+    </div>
 
     <div class="section-header">📸 Fremgangsbilde</div>
 
@@ -384,6 +437,16 @@
     </div>
   </div>
 
+</div>
+
+<!-- CONFETTI -->
+<canvas id="confetti-canvas"></canvas>
+<div id="confetti-overlay">
+  <div id="confetti-msg">
+    <span class="conf-emoji">🎉</span>
+    <div class="conf-title" id="conf-title">Uke fullført!</div>
+    <div class="conf-sub" id="conf-sub">Fantastisk jobba!</div>
+  </div>
 </div>
 
 <!-- NAV -->
@@ -482,7 +545,7 @@ function switchScreen(name) {
   document.getElementById('nav-coach').classList.toggle('active',name==='chat');
   document.getElementById('nav-program').classList.toggle('active',name==='program');
   currentScreen=name;
-  if(name==='vekt') renderWeightScreen();
+  if(name==='vekt'){ renderWeightScreen(); renderWater(); }
   if(name==='program') renderJourney();
 }
 
@@ -847,7 +910,121 @@ function toggleTask(wn,key){
   if(btn) btn.classList.toggle('checked',c[key]);
   if(txt) txt.classList.toggle('done',c[key]);
   const j=getJourney(),w=j.find(x=>x.weekNum===wn);
-  if(w){ const p=weekPct(wn,w.days); document.querySelectorAll('.journey-progress-fill,.journey-progress-text').forEach(el=>{ if(el.closest('.journey-step')){ const match=el.closest('.journey-step'); } }); renderJourney(); }
+  if(w){ renderJourney(); checkAndUpdateStreak(wn); }
+}
+
+// ═══════════════════════════════════════════════
+// STREAKS
+// ═══════════════════════════════════════════════
+const BADGES = [{min:52,icon:'👑',label:'52 uker'},{min:12,icon:'🥇',label:'12 uker'},{min:4,icon:'🥈',label:'4 uker'},{min:1,icon:'🥉',label:'1 uke'}];
+
+function getStreak(){ return LS.get('streak')||0; }
+function setStreak(n){ LS.set('streak',n); }
+
+function renderStreakBar(){
+  const s=getStreak();
+  document.getElementById('streak-num').textContent=s;
+  const badge=BADGES.find(b=>s>=b.min);
+  document.getElementById('streak-badge-el').textContent=badge?badge.icon+' '+badge.label:'🎯 Kom i gang!';
+}
+
+function checkAndUpdateStreak(wn){
+  const j=getJourney(),w=j.find(x=>x.weekNum===wn); if(!w) return;
+  const pct=weekPct(wn,w.days);
+  const lastSaved=LS.get('streak_last_week');
+  if(pct===100&&lastSaved!==wn){
+    LS.set('streak_last_week',wn);
+    const newStreak=getStreak()+1;
+    setStreak(newStreak);
+    renderStreakBar();
+    showConfetti(wn,newStreak);
+    setTimeout(()=>{
+      addMsg('coach',`Fantastisk jobba denne uken! Du er nå på ${newStreak} ukers streak 🔥 La oss fortsette!`);
+      animateAvatar();
+      switchScreen('chat');
+    },3500);
+  }
+}
+
+function showConfetti(wn,streak){
+  document.getElementById('conf-title').textContent=`Uke ${wn} fullført! 🎉`;
+  document.getElementById('conf-sub').textContent=`Du er på ${streak} ukers streak! Fortsett slik!`;
+  const overlay=document.getElementById('confetti-overlay');
+  const canvas=document.getElementById('confetti-canvas');
+  overlay.classList.add('show');
+  canvas.style.display='block';
+  canvas.width=window.innerWidth; canvas.height=window.innerHeight;
+  launchConfetti(canvas);
+  setTimeout(()=>{ overlay.classList.remove('show'); canvas.style.display='none'; },3000);
+}
+
+function launchConfetti(canvas){
+  const ctx=canvas.getContext('2d');
+  const COLORS=['#2563eb','#3b82f6','#60a5fa','#93c5fd','#1d4ed8','#bfdbfe'];
+  const particles=Array.from({length:90},()=>({
+    x:Math.random()*canvas.width, y:-10,
+    r:Math.random()*6+4,
+    c:COLORS[Math.floor(Math.random()*COLORS.length)],
+    vx:(Math.random()-0.5)*3,
+    vy:Math.random()*4+3,
+    rot:Math.random()*360,
+    vrot:(Math.random()-0.5)*8
+  }));
+  let frame=0;
+  function draw(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    particles.forEach(p=>{
+      ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.rot*Math.PI/180);
+      ctx.fillStyle=p.c; ctx.fillRect(-p.r/2,-p.r/2,p.r,p.r*1.5); ctx.restore();
+      p.x+=p.vx; p.y+=p.vy; p.rot+=p.vrot; p.vy+=0.05;
+    });
+    if(frame++<90) requestAnimationFrame(draw);
+  }
+  draw();
+}
+
+// ═══════════════════════════════════════════════
+// WATER TRACKER
+// ═══════════════════════════════════════════════
+const GLASSES_TOTAL=8;
+
+function getWater(){ const v=LS.get('water_'+todayStr()); return typeof v==='number'?v:0; }
+function setWater(n){ LS.set('water_'+todayStr(),n); }
+
+function glassSVG(filled){
+  const body='#dde3f0',fill='#3b82f6',rim='#b0bcda';
+  return `<svg viewBox="0 0 30 38" xmlns="http://www.w3.org/2000/svg">
+    <defs><clipPath id="gc"><path d="M5 8 L7 34 Q7.5 36 15 36 Q22.5 36 23 34 L25 8 Z"/></clipPath></defs>
+    <path d="M5 8 L7 34 Q7.5 36 15 36 Q22.5 36 23 34 L25 8 Z" fill="${filled?'none':body}" stroke="${rim}" stroke-width="1.5"/>
+    ${filled?`<path d="M5 8 L7 34 Q7.5 36 15 36 Q22.5 36 23 34 L25 8 Z" fill="${fill}" opacity=".85"/>
+    <ellipse cx="15" cy="10" rx="9" ry="3" fill="white" opacity=".25"/>`:``}
+    <line x1="4" y1="8" x2="26" y2="8" stroke="${rim}" stroke-width="2" stroke-linecap="round"/>
+    <line x1="2" y1="4" x2="28" y2="4" stroke="${rim}" stroke-width="2.5" stroke-linecap="round"/>
+  </svg>`;
+}
+
+function renderWater(){
+  const count=getWater();
+  document.getElementById('water-count-lbl').textContent=`${count} / ${GLASSES_TOTAL} glass`;
+  document.getElementById('water-prog').style.width=Math.round(count/GLASSES_TOTAL*100)+'%';
+  const container=document.getElementById('water-glasses');
+  container.innerHTML='';
+  for(let i=0;i<GLASSES_TOTAL;i++){
+    const btn=document.createElement('button');
+    btn.className='water-glass';
+    btn.innerHTML=glassSVG(i<count);
+    btn.setAttribute('aria-label',`Glass ${i+1}`);
+    btn.onclick=()=>{ const cur=getWater(),next=cur===(i+1)?i:i+1; setWater(next); renderWater(); if(next===GLASSES_TOTAL) showWaterGoal(); };
+    container.appendChild(btn);
+  }
+  const msg=document.getElementById('water-goal-msg');
+  msg.textContent=count>=GLASSES_TOTAL?'Dagens vannmål nådd! 💧':'';
+}
+
+function showWaterGoal(){
+  const msg=document.getElementById('water-goal-msg');
+  msg.textContent='Dagens vannmål nådd! 💧';
+  msg.style.animation='none'; void msg.offsetWidth; msg.style.animation='popIn .4s ease';
 }
 
 // ═══════════════════════════════════════════════
@@ -855,6 +1032,8 @@ function toggleTask(wn,key){
 // ═══════════════════════════════════════════════
 checkWeekReset();
 renderWeightScreen();
+renderStreakBar();
+renderWater();
 </script>
 </body>
 </html>
