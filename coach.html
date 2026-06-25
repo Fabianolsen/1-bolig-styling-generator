@@ -2,597 +2,788 @@
 <html lang="no">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Coach Apex – AI Personal Trainer</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Coach Apex</title>
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
-  body {
+  :root {
+    --bg: #0d0d0f;
+    --bg2: #121216;
+    --bg3: #1e1e28;
+    --border: #2a2a38;
+    --orange: #ff4d00;
+    --orange2: #ff7a00;
+    --text: #e8e8f0;
+    --text2: #888;
+    --text3: #444;
+    --green: #00e676;
+    --nav-h: 72px;
+  }
+
+  html, body {
+    height: 100%; width: 100%;
+    background: var(--bg);
+    color: var(--text);
     font-family: 'Segoe UI', system-ui, sans-serif;
-    background: #0d0d0f;
-    color: #e8e8f0;
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
     overflow: hidden;
   }
 
-  /* API KEY BAR */
+  /* ── API BAR ── */
   #api-bar {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
     background: #16161a;
-    border-bottom: 1px solid #2a2a35;
-    padding: 10px 20px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    flex-shrink: 0;
+    border-bottom: 1px solid var(--border);
+    padding: 8px 16px;
+    display: flex; align-items: center; gap: 10px;
+    height: 48px;
   }
-  #api-bar label {
-    font-size: 12px;
-    color: #888;
-    white-space: nowrap;
-    font-weight: 600;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-  }
+  #api-bar label { font-size: 11px; color: var(--text2); white-space: nowrap; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; }
   #api-key-input {
-    flex: 1;
-    background: #0d0d0f;
-    border: 1px solid #2a2a35;
-    border-radius: 6px;
-    color: #e8e8f0;
-    padding: 7px 12px;
-    font-size: 13px;
-    font-family: monospace;
-    outline: none;
-    transition: border-color 0.2s;
+    flex: 1; background: var(--bg); border: 1px solid var(--border);
+    border-radius: 6px; color: var(--text); padding: 6px 10px;
+    font-size: 13px; font-family: monospace; outline: none;
   }
-  #api-key-input:focus { border-color: #ff4d00; }
-  #api-key-status {
-    font-size: 11px;
-    color: #ff4d00;
-    white-space: nowrap;
-  }
-  #api-key-status.ok { color: #00e676; }
+  #api-key-input:focus { border-color: var(--orange); }
+  #api-key-status { font-size: 11px; color: var(--orange); white-space: nowrap; }
+  #api-key-status.ok { color: var(--green); }
 
-  /* MAIN LAYOUT */
-  #main {
-    display: flex;
-    flex: 1;
+  /* ── SCREENS ── */
+  #app {
+    position: fixed;
+    top: 48px; left: 0; right: 0;
+    bottom: var(--nav-h);
     overflow: hidden;
   }
 
-  /* LEFT PANEL – FIGURE */
-  #figure-panel {
-    width: 280px;
-    flex-shrink: 0;
-    background: linear-gradient(160deg, #16161a 0%, #0d0d0f 100%);
-    border-right: 1px solid #2a2a35;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 24px;
-    padding: 32px 24px;
+  .screen {
+    position: absolute; inset: 0;
+    overflow-y: auto; overflow-x: hidden;
+    opacity: 0; pointer-events: none;
+    transform: translateY(12px);
+    transition: opacity .25s ease, transform .25s ease;
+    -webkit-overflow-scrolling: touch;
+  }
+  .screen.active {
+    opacity: 1; pointer-events: all; transform: translateY(0);
   }
 
-  .trainer-name {
-    font-size: 22px;
-    font-weight: 800;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    background: linear-gradient(90deg, #ff4d00, #ff9a00);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+  /* ── NAV BAR ── */
+  #nav {
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
+    height: var(--nav-h);
+    background: #16161a;
+    border-top: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-around;
+    padding: 0 8px 8px;
   }
-  .trainer-sub {
-    font-size: 12px;
-    color: #555;
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
-    margin-top: -18px;
+  .nav-btn {
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    background: none; border: none; color: var(--text3);
+    cursor: pointer; padding: 8px 16px; border-radius: 12px;
+    transition: color .2s, background .2s; font-size: 11px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: .06em;
   }
+  .nav-btn svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .nav-btn.active { color: var(--orange); }
+  .nav-btn.active svg { stroke: var(--orange); }
 
-  #trainer-svg {
-    width: 180px;
-    height: 260px;
+  .nav-center-btn {
+    position: relative;
+    background: linear-gradient(135deg, var(--orange), var(--orange2));
+    border: none; border-radius: 50%; width: 60px; height: 60px;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 0 20px rgba(255,77,0,.4);
+    transition: box-shadow .2s, transform .15s;
+    margin-bottom: 8px;
   }
+  .nav-center-btn:active { transform: scale(.93); }
+  .nav-center-btn.active { box-shadow: 0 0 30px rgba(255,77,0,.7); }
+  .nav-center-btn svg { width: 32px; height: 32px; }
 
-  .stats {
-    display: flex;
-    gap: 16px;
+  /* ══════════════════════════════
+     SCREEN 1 – CHAT
+  ══════════════════════════════ */
+  #screen-chat {
+    display: flex; flex-direction: column;
   }
-  .stat {
-    text-align: center;
-  }
-  .stat-value {
-    font-size: 20px;
-    font-weight: 800;
-    color: #ff4d00;
-  }
-  .stat-label {
-    font-size: 10px;
-    color: #555;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-  }
-
-  /* RIGHT PANEL – CHAT */
-  #chat-panel {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
-
-  #chat-header {
-    padding: 16px 24px;
-    border-bottom: 1px solid #1e1e25;
-    background: #121216;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-shrink: 0;
-  }
-  .pulse-dot {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background: #00e676;
-    animation: pulse 1.8s ease-in-out infinite;
-  }
-  @keyframes pulse {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.4; transform: scale(0.85); }
-  }
-  #chat-header-title {
-    font-size: 15px;
-    font-weight: 700;
-    color: #e8e8f0;
-  }
-  #chat-header-sub {
-    font-size: 12px;
-    color: #555;
-    margin-left: auto;
-  }
-
   #messages {
-    flex: 1;
+    flex: 1; padding: 20px 16px;
+    display: flex; flex-direction: column; gap: 14px;
     overflow-y: auto;
-    padding: 24px;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    scrollbar-width: thin;
-    scrollbar-color: #2a2a35 transparent;
   }
-  #messages::-webkit-scrollbar { width: 5px; }
-  #messages::-webkit-scrollbar-track { background: transparent; }
-  #messages::-webkit-scrollbar-thumb { background: #2a2a35; border-radius: 3px; }
-
-  .message {
-    display: flex;
-    flex-direction: column;
-    max-width: 75%;
-    animation: fadeUp 0.25s ease;
-  }
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(8px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
+  .message { display: flex; flex-direction: column; max-width: 82%; }
   .message.user { align-self: flex-end; align-items: flex-end; }
   .message.coach { align-self: flex-start; align-items: flex-start; }
-
   .bubble {
-    padding: 12px 16px;
-    border-radius: 16px;
-    font-size: 14px;
-    line-height: 1.6;
-    white-space: pre-wrap;
-    word-break: break-word;
+    padding: 11px 14px; border-radius: 18px;
+    font-size: 14px; line-height: 1.55; white-space: pre-wrap; word-break: break-word;
   }
-  .message.user .bubble {
-    background: linear-gradient(135deg, #ff4d00, #ff7a00);
-    color: #fff;
-    border-bottom-right-radius: 4px;
-  }
-  .message.coach .bubble {
-    background: #1e1e28;
-    color: #dddde8;
-    border-bottom-left-radius: 4px;
-    border: 1px solid #2a2a38;
-  }
-  .meta {
-    font-size: 11px;
-    color: #444;
-    margin-top: 4px;
-    padding: 0 4px;
-  }
-
-  /* TYPING INDICATOR */
-  .typing-bubble {
-    display: flex;
-    gap: 5px;
-    padding: 14px 18px;
-    background: #1e1e28;
-    border-radius: 16px;
-    border-bottom-left-radius: 4px;
-    border: 1px solid #2a2a38;
-    width: fit-content;
-  }
-  .typing-bubble span {
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    background: #ff4d00;
-    animation: bounce 1.2s ease-in-out infinite;
-  }
-  .typing-bubble span:nth-child(2) { animation-delay: 0.2s; }
-  .typing-bubble span:nth-child(3) { animation-delay: 0.4s; }
-  @keyframes bounce {
-    0%, 80%, 100% { transform: translateY(0); opacity: 0.4; }
-    40% { transform: translateY(-6px); opacity: 1; }
-  }
-
-  /* INPUT AREA */
-  #input-area {
-    padding: 16px 24px;
-    border-top: 1px solid #1e1e25;
-    background: #121216;
-    display: flex;
-    gap: 12px;
-    align-items: flex-end;
-    flex-shrink: 0;
+  .message.user .bubble { background: linear-gradient(135deg, var(--orange), var(--orange2)); color: #fff; border-bottom-right-radius: 4px; }
+  .message.coach .bubble { background: var(--bg3); color: #dddde8; border-bottom-left-radius: 4px; border: 1px solid var(--border); }
+  .meta { font-size: 10px; color: var(--text3); margin-top: 3px; padding: 0 4px; }
+  .typing-bubble { display: flex; gap: 5px; padding: 13px 16px; background: var(--bg3); border-radius: 18px; border-bottom-left-radius: 4px; border: 1px solid var(--border); }
+  .typing-bubble span { width: 7px; height: 7px; border-radius: 50%; background: var(--orange); animation: bounce 1.2s ease-in-out infinite; }
+  .typing-bubble span:nth-child(2) { animation-delay: .2s; }
+  .typing-bubble span:nth-child(3) { animation-delay: .4s; }
+  @keyframes bounce { 0%,80%,100%{transform:translateY(0);opacity:.4}40%{transform:translateY(-6px);opacity:1} }
+  .welcome { text-align: center; padding: 40px 20px; color: var(--text3); font-size: 14px; line-height: 1.9; }
+  .welcome strong { color: var(--orange); }
+  #chat-input-area {
+    padding: 12px 12px 14px;
+    background: var(--bg2);
+    border-top: 1px solid var(--border);
+    display: flex; gap: 10px; align-items: flex-end;
   }
   #user-input {
-    flex: 1;
-    background: #1e1e28;
-    border: 1px solid #2a2a38;
-    border-radius: 12px;
-    color: #e8e8f0;
-    padding: 12px 16px;
-    font-size: 14px;
-    font-family: inherit;
-    resize: none;
-    outline: none;
-    max-height: 140px;
-    line-height: 1.5;
-    transition: border-color 0.2s;
+    flex: 1; background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 20px; color: var(--text); padding: 10px 14px;
+    font-size: 14px; font-family: inherit; resize: none; outline: none;
+    max-height: 120px; line-height: 1.4;
   }
-  #user-input:focus { border-color: #ff4d00; }
-  #user-input::placeholder { color: #444; }
-
+  #user-input:focus { border-color: var(--orange); }
+  #user-input::placeholder { color: var(--text3); }
   #send-btn {
-    background: linear-gradient(135deg, #ff4d00, #ff7a00);
-    border: none;
-    border-radius: 10px;
-    width: 46px;
-    height: 46px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: opacity 0.2s, transform 0.1s;
-    flex-shrink: 0;
+    background: linear-gradient(135deg, var(--orange), var(--orange2));
+    border: none; border-radius: 50%; width: 42px; height: 42px;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; transition: opacity .2s;
   }
-  #send-btn:hover { opacity: 0.85; }
-  #send-btn:active { transform: scale(0.95); }
-  #send-btn:disabled { opacity: 0.35; cursor: not-allowed; }
-  #send-btn svg { width: 20px; height: 20px; fill: white; }
+  #send-btn:disabled { opacity: .35; }
+  #send-btn svg { width: 18px; height: 18px; fill: white; }
 
-  /* WELCOME MESSAGE */
-  .welcome {
-    text-align: center;
-    padding: 40px 20px;
-    color: #444;
-    font-size: 14px;
-    line-height: 1.8;
+  /* ══════════════════════════════
+     SCREEN 2 – VEKTLOGG
+  ══════════════════════════════ */
+  #screen-vekt { padding: 20px 16px 24px; }
+  .screen-title {
+    font-size: 20px; font-weight: 800; letter-spacing: .04em;
+    margin-bottom: 20px;
+    background: linear-gradient(90deg, var(--orange), var(--orange2));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
   }
-  .welcome strong { color: #ff4d00; }
+
+  .weight-input-card {
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 16px; padding: 18px; margin-bottom: 20px;
+    display: flex; gap: 12px; align-items: center;
+  }
+  .weight-input-card input[type="number"] {
+    flex: 1; background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 10px; color: var(--text); padding: 10px 14px;
+    font-size: 22px; font-weight: 700; outline: none; width: 100%;
+  }
+  .weight-input-card input[type="number"]:focus { border-color: var(--orange); }
+  .weight-input-card input[type="number"]::placeholder { color: var(--text3); font-size: 16px; font-weight: 400; }
+  .weight-unit { font-size: 18px; color: var(--text2); font-weight: 600; }
+  #log-weight-btn {
+    background: linear-gradient(135deg, var(--orange), var(--orange2));
+    border: none; border-radius: 10px; color: #fff;
+    padding: 11px 22px; font-size: 14px; font-weight: 700; cursor: pointer;
+    white-space: nowrap; transition: opacity .2s;
+  }
+  #log-weight-btn:active { opacity: .8; }
+
+  .stats-row {
+    display: flex; gap: 10px; margin-bottom: 20px;
+  }
+  .stat-card {
+    flex: 1; background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 14px; padding: 14px 12px; text-align: center;
+  }
+  .stat-card .val { font-size: 22px; font-weight: 800; color: var(--orange); }
+  .stat-card .lbl { font-size: 10px; color: var(--text2); text-transform: uppercase; letter-spacing: .08em; margin-top: 3px; }
+
+  .graph-card {
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 16px; padding: 16px; margin-bottom: 20px;
+  }
+  .graph-title { font-size: 13px; color: var(--text2); font-weight: 600; margin-bottom: 12px; text-transform: uppercase; letter-spacing: .06em; }
+  #weight-graph { width: 100%; height: 180px; display: block; }
+
+  .log-list { display: flex; flex-direction: column; gap: 8px; }
+  .log-item {
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 10px; padding: 11px 14px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .log-item .log-date { font-size: 13px; color: var(--text2); }
+  .log-item .log-val { font-size: 16px; font-weight: 700; color: var(--text); }
+  .log-item .log-diff { font-size: 12px; }
+  .log-item .log-diff.up { color: #ff5252; }
+  .log-item .log-diff.down { color: var(--green); }
+
+  /* ══════════════════════════════
+     SCREEN 3 – PROGRAM
+  ══════════════════════════════ */
+  #screen-program { padding: 20px 16px 24px; }
+
+  .program-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+  #gen-program-btn {
+    background: linear-gradient(135deg, var(--orange), var(--orange2));
+    border: none; border-radius: 10px; color: #fff;
+    padding: 10px 18px; font-size: 13px; font-weight: 700; cursor: pointer;
+    transition: opacity .2s;
+  }
+  #gen-program-btn:disabled { opacity: .4; }
+
+  .week-reset-note { font-size: 11px; color: var(--text3); margin-bottom: 16px; }
+
+  .day-card {
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 16px; margin-bottom: 12px; overflow: hidden;
+  }
+  .day-header {
+    padding: 13px 16px; display: flex; justify-content: space-between; align-items: center;
+    cursor: pointer; user-select: none;
+  }
+  .day-name { font-size: 15px; font-weight: 700; }
+  .day-name.today { color: var(--orange); }
+  .day-progress { font-size: 12px; color: var(--text2); }
+  .day-body { padding: 0 16px 14px; display: none; }
+  .day-body.open { display: block; }
+
+  .day-section-title { font-size: 11px; color: var(--text2); text-transform: uppercase; letter-spacing: .08em; margin: 12px 0 6px; }
+  .task-item {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,.04);
+  }
+  .task-item:last-child { border-bottom: none; }
+  .task-text { flex: 1; font-size: 13px; line-height: 1.5; color: var(--text); }
+  .task-text.done { color: var(--text3); text-decoration: line-through; }
+  .done-btn {
+    flex-shrink: 0; background: none; border: 1.5px solid var(--border);
+    border-radius: 6px; width: 28px; height: 28px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background .2s, border-color .2s;
+  }
+  .done-btn.checked { background: var(--green); border-color: var(--green); }
+  .done-btn svg { width: 14px; height: 14px; stroke: #fff; stroke-width: 3; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+
+  .program-empty {
+    text-align: center; padding: 60px 20px; color: var(--text3);
+    font-size: 14px; line-height: 2;
+  }
+  .program-empty strong { color: var(--orange); display: block; font-size: 18px; margin-bottom: 8px; }
+
+  .program-loading {
+    text-align: center; padding: 40px 20px; color: var(--text2); font-size: 14px;
+  }
+
+  /* scrollbar */
+  .screen::-webkit-scrollbar { width: 4px; }
+  .screen::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+  #messages::-webkit-scrollbar { width: 4px; }
+  #messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  @keyframes fadeUp { from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)} }
 </style>
 </head>
 <body>
 
 <!-- API KEY BAR -->
 <div id="api-bar">
-  <label>Anthropic API-nøkkel</label>
+  <label>API-nøkkel</label>
   <input type="password" id="api-key-input" placeholder="sk-ant-..." autocomplete="off">
   <span id="api-key-status">Ikke satt</span>
 </div>
 
-<!-- MAIN -->
-<div id="main">
+<!-- SCREENS -->
+<div id="app">
 
-  <!-- LEFT: ANIMATED FIGURE -->
-  <div id="figure-panel">
-    <div class="trainer-name">Coach Apex</div>
-    <div class="trainer-sub">AI Personal Trainer</div>
-
-    <svg id="trainer-svg" viewBox="0 0 180 260" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <linearGradient id="bodyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" style="stop-color:#ff4d00"/>
-          <stop offset="100%" style="stop-color:#ff9a00"/>
-        </linearGradient>
-        <linearGradient id="skinGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" style="stop-color:#e8b89a"/>
-          <stop offset="100%" style="stop-color:#c8906a"/>
-        </linearGradient>
-        <filter id="glow">
-          <feGaussianBlur stdDeviation="3" result="blur"/>
-          <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-        </filter>
-      </defs>
-
-      <!-- GLOW RING -->
-      <ellipse cx="90" cy="250" rx="50" ry="8" fill="#ff4d00" opacity="0.18"/>
-
-      <!-- LEGS -->
-      <rect x="74" y="175" width="16" height="55" rx="7" fill="#1a1a22"/>
-      <rect x="92" y="175" width="16" height="55" rx="7" fill="#1a1a22"/>
-      <!-- SHOES -->
-      <rect x="68" y="225" width="26" height="10" rx="5" fill="#ff4d00"/>
-      <rect x="88" y="225" width="26" height="10" rx="5" fill="#ff4d00"/>
-
-      <!-- TORSO -->
-      <rect x="63" y="105" width="54" height="75" rx="12" fill="url(#bodyGrad)" filter="url(#glow)"/>
-      <!-- SHIRT DETAIL -->
-      <path d="M90 110 L90 175" stroke="#ff2200" stroke-width="2" opacity="0.4"/>
-      <text x="90" y="150" text-anchor="middle" font-size="11" font-weight="900"
-            fill="white" opacity="0.7" letter-spacing="1">APEX</text>
-
-      <!-- LEFT ARM (animated) -->
-      <g id="arm-left" transform-origin="70 115">
-        <rect x="42" y="108" width="30" height="13" rx="6" fill="url(#bodyGrad)"/>
-        <!-- forearm -->
-        <rect x="26" y="102" width="20" height="12" rx="5" fill="url(#skinGrad)"
-              transform-origin="46 108"/>
-        <!-- fist -->
-        <circle cx="24" cy="107" r="8" fill="url(#skinGrad)"/>
-        <animateTransform attributeName="transform" type="rotate"
-          values="-18;18;-18" dur="2.2s" repeatCount="indefinite"
-          additive="sum"/>
-      </g>
-
-      <!-- RIGHT ARM (animated, opposite phase) -->
-      <g id="arm-right" transform-origin="110 115">
-        <rect x="108" y="108" width="30" height="13" rx="6" fill="url(#bodyGrad)"/>
-        <rect x="134" y="102" width="20" height="12" rx="5" fill="url(#skinGrad)"
-              transform-origin="134 108"/>
-        <circle cx="156" cy="107" r="8" fill="url(#skinGrad)"/>
-        <animateTransform attributeName="transform" type="rotate"
-          values="18;-18;18" dur="2.2s" repeatCount="indefinite"
-          additive="sum"/>
-      </g>
-
-      <!-- NECK -->
-      <rect x="83" y="88" width="14" height="20" rx="5" fill="url(#skinGrad)"/>
-
-      <!-- HEAD -->
-      <ellipse cx="90" cy="76" rx="26" ry="28" fill="url(#skinGrad)"/>
-      <!-- HAIR -->
-      <ellipse cx="90" cy="52" rx="26" ry="14" fill="#1a1a1a"/>
-      <rect x="64" y="52" width="52" height="10" rx="5" fill="#1a1a1a"/>
-      <!-- EYES -->
-      <ellipse cx="80" cy="74" rx="4" ry="4.5" fill="white"/>
-      <ellipse cx="100" cy="74" rx="4" ry="4.5" fill="white"/>
-      <circle cx="81" cy="75" r="2.5" fill="#1a1a1a"/>
-      <circle cx="101" cy="75" r="2.5" fill="#1a1a1a"/>
-      <!-- SMILE -->
-      <path d="M80 86 Q90 94 100 86" stroke="#c87050" stroke-width="2.5"
-            fill="none" stroke-linecap="round"/>
-      <!-- EYEBROWS (determined look) -->
-      <path d="M76 68 Q80 65 84 67" stroke="#1a1a1a" stroke-width="2.5"
-            fill="none" stroke-linecap="round"/>
-      <path d="M96 67 Q100 65 104 68" stroke="#1a1a1a" stroke-width="2.5"
-            fill="none" stroke-linecap="round"/>
-
-      <!-- HEADBAND -->
-      <path d="M64 63 Q90 56 116 63" stroke="#ff4d00" stroke-width="5"
-            fill="none" stroke-linecap="round" opacity="0.9"/>
-    </svg>
-
-    <div class="stats">
-      <div class="stat">
-        <div class="stat-value" id="msg-count">0</div>
-        <div class="stat-label">Meldinger</div>
-      </div>
-      <div class="stat">
-        <div class="stat-value" id="session-time">0m</div>
-        <div class="stat-label">Økt</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- RIGHT: CHAT -->
-  <div id="chat-panel">
-    <div id="chat-header">
-      <div class="pulse-dot"></div>
-      <div class="chat-header-title">Coach Apex</div>
-      <div id="chat-header-sub">Klar til å trene 💪</div>
-    </div>
-
+  <!-- CHAT -->
+  <div id="screen-chat" class="screen active">
     <div id="messages">
       <div class="welcome">
-        <strong>Velkommen til Coach Apex!</strong><br>
-        Legg inn din Anthropic API-nøkkel øverst,<br>
-        og start samtalen nedenfor.
+        <strong>Hei! Jeg er Coach Apex 💪</strong>
+        Din personlige AI-trener.<br>
+        Spør meg om trening, kosthold eller motivasjon!
       </div>
     </div>
-
-    <div id="input-area">
-      <textarea id="user-input" rows="1"
-        placeholder="Spør om trening, kosthold, motivasjon..."></textarea>
+    <div id="chat-input-area">
+      <textarea id="user-input" rows="1" placeholder="Spør Coach Apex..."></textarea>
       <button id="send-btn" title="Send">
         <svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
       </button>
     </div>
   </div>
+
+  <!-- VEKTLOGG -->
+  <div id="screen-vekt" class="screen">
+    <div class="screen-title">Vektlogg</div>
+
+    <div class="weight-input-card">
+      <input type="number" id="weight-input" placeholder="70.5" step="0.1" min="30" max="300">
+      <span class="weight-unit">kg</span>
+      <button id="log-weight-btn">Logg</button>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-card"><div class="val" id="stat-start">–</div><div class="lbl">Startvekt</div></div>
+      <div class="stat-card"><div class="val" id="stat-now">–</div><div class="lbl">Nå</div></div>
+      <div class="stat-card"><div class="val" id="stat-diff">–</div><div class="lbl">Endring</div></div>
+    </div>
+
+    <div class="graph-card">
+      <div class="graph-title">Siste 365 dager</div>
+      <svg id="weight-graph" viewBox="0 0 360 180" preserveAspectRatio="none"></svg>
+    </div>
+
+    <div class="log-list" id="log-list"></div>
+  </div>
+
+  <!-- PROGRAM -->
+  <div id="screen-program" class="screen">
+    <div class="program-header">
+      <div class="screen-title" style="margin-bottom:0">Ukesprogram</div>
+      <button id="gen-program-btn">Generer nytt</button>
+    </div>
+    <div class="week-reset-note">Fullførte oppgaver nullstilles automatisk hver mandag.</div>
+    <div id="program-content">
+      <div class="program-empty">
+        <strong>Ingen plan ennå</strong>
+        Trykk «Generer nytt» for å lage<br>din personlige uke-plan med Coach Apex.
+      </div>
+    </div>
+  </div>
+
 </div>
 
+<!-- BOTTOM NAV -->
+<nav id="nav">
+  <button class="nav-btn" id="nav-vekt" onclick="switchScreen('vekt')">
+    <svg viewBox="0 0 24 24"><path d="M12 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8z"/><path d="M3 21h18M5 21l1.5-6h11L19 21"/><path d="M9 15v-2h6v2"/></svg>
+    Vektlogg
+  </button>
+
+  <button class="nav-center-btn active" id="nav-coach" onclick="switchScreen('chat')">
+    <svg viewBox="0 0 180 180" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="nb" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#fff;stop-opacity:.95"/>
+          <stop offset="100%" style="stop-color:#ffe0cc"/>
+        </linearGradient>
+      </defs>
+      <!-- legs -->
+      <rect x="72" y="118" width="14" height="38" rx="6" fill="rgba(255,255,255,.15)"/>
+      <rect x="94" y="118" width="14" height="38" rx="6" fill="rgba(255,255,255,.15)"/>
+      <!-- torso -->
+      <rect x="62" y="72" width="56" height="50" rx="10" fill="rgba(255,255,255,.25)"/>
+      <!-- left arm -->
+      <g style="transform-origin:72px 80px;animation:bounce2 2.2s ease-in-out infinite">
+        <rect x="38" y="75" width="28" height="11" rx="5" fill="rgba(255,255,255,.25)"/>
+        <circle cx="34" cy="80" r="7" fill="url(#nb)"/>
+      </g>
+      <!-- right arm -->
+      <g style="transform-origin:108px 80px;animation:bounce2 2.2s ease-in-out infinite reverse">
+        <rect x="114" y="75" width="28" height="11" rx="5" fill="rgba(255,255,255,.25)"/>
+        <circle cx="146" cy="80" r="7" fill="url(#nb)"/>
+      </g>
+      <!-- neck -->
+      <rect x="83" y="58" width="14" height="16" rx="5" fill="url(#nb)"/>
+      <!-- head -->
+      <ellipse cx="90" cy="46" rx="22" ry="24" fill="url(#nb)"/>
+      <!-- hair -->
+      <ellipse cx="90" cy="26" rx="22" ry="12" fill="#333"/>
+      <!-- eyes -->
+      <circle cx="82" cy="45" r="3" fill="#333"/>
+      <circle cx="98" cy="45" r="3" fill="#333"/>
+      <!-- headband -->
+      <path d="M68 35 Q90 28 112 35" stroke="#ff4d00" stroke-width="4" fill="none" stroke-linecap="round"/>
+    </svg>
+  </button>
+
+  <button class="nav-btn" id="nav-program" onclick="switchScreen('program')">
+    <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/><path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01"/></svg>
+    Program
+  </button>
+</nav>
+
+<style>
+@keyframes bounce2 {
+  0%,100%{transform:rotate(-14deg)}
+  50%{transform:rotate(14deg)}
+}
+</style>
+
 <script>
-  const apiKeyInput = document.getElementById('api-key-input');
-  const apiKeyStatus = document.getElementById('api-key-status');
-  const messagesEl = document.getElementById('messages');
-  const userInput = document.getElementById('user-input');
-  const sendBtn = document.getElementById('send-btn');
-  const msgCountEl = document.getElementById('msg-count');
-  const sessionTimeEl = document.getElementById('session-time');
+// ── STATE ──────────────────────────────────────────────
+let chatHistory = [];
+let currentScreen = 'chat';
 
-  let history = [];
-  let msgCount = 0;
-  let sessionStart = Date.now();
+const DAYS = ['Mandag','Tirsdag','Onsdag','Torsdag','Fredag','Lørdag','Søndag'];
 
-  // Session timer
-  setInterval(() => {
-    const mins = Math.floor((Date.now() - sessionStart) / 60000);
-    sessionTimeEl.textContent = mins + 'm';
-  }, 10000);
+// ── UTILS ──────────────────────────────────────────────
+function apiKey() { return document.getElementById('api-key-input').value.trim(); }
 
-  // API key validation feedback
-  apiKeyInput.addEventListener('input', () => {
-    const val = apiKeyInput.value.trim();
-    if (val.startsWith('sk-ant-') && val.length > 20) {
-      apiKeyStatus.textContent = 'Klar ✓';
-      apiKeyStatus.className = 'ok';
-    } else if (val.length > 0) {
-      apiKeyStatus.textContent = 'Ugyldig format';
-      apiKeyStatus.className = '';
-    } else {
-      apiKeyStatus.textContent = 'Ikke satt';
-      apiKeyStatus.className = '';
-    }
+function ts() {
+  const n = new Date();
+  return n.getHours().toString().padStart(2,'0')+':'+n.getMinutes().toString().padStart(2,'0');
+}
+
+function todayStr() { return new Date().toISOString().slice(0,10); }
+
+function getMonday() {
+  const d = new Date(); const day = d.getDay();
+  const diff = d.getDate() - day + (day===0 ? -6 : 1);
+  return new Date(d.setDate(diff)).toISOString().slice(0,10);
+}
+
+// ── API KEY ────────────────────────────────────────────
+const apiKeyInput = document.getElementById('api-key-input');
+const apiKeyStatus = document.getElementById('api-key-status');
+
+const savedKey = localStorage.getItem('apex_api_key');
+if (savedKey) { apiKeyInput.value = savedKey; updateKeyStatus(savedKey); }
+
+apiKeyInput.addEventListener('input', () => {
+  const v = apiKeyInput.value.trim();
+  localStorage.setItem('apex_api_key', v);
+  updateKeyStatus(v);
+});
+
+function updateKeyStatus(v) {
+  if (v.startsWith('sk-ant-') && v.length > 20) { apiKeyStatus.textContent='Klar ✓'; apiKeyStatus.className='ok'; }
+  else if (v.length > 0) { apiKeyStatus.textContent='Ugyldig'; apiKeyStatus.className=''; }
+  else { apiKeyStatus.textContent='Ikke satt'; apiKeyStatus.className=''; }
+}
+
+// ── NAVIGATION ─────────────────────────────────────────
+function switchScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-'+name).classList.add('active');
+
+  document.getElementById('nav-vekt').classList.toggle('active', name==='vekt');
+  document.getElementById('nav-coach').classList.toggle('active', name==='chat');
+  document.getElementById('nav-program').classList.toggle('active', name==='program');
+
+  currentScreen = name;
+  if (name === 'vekt') renderWeightScreen();
+  if (name === 'program') renderProgramScreen();
+}
+
+// ══════════════════════════════════════════════════════
+// SCREEN 1 — CHAT
+// ══════════════════════════════════════════════════════
+const messagesEl = document.getElementById('messages');
+const userInput = document.getElementById('user-input');
+const sendBtn = document.getElementById('send-btn');
+
+userInput.addEventListener('input', () => {
+  userInput.style.height = 'auto';
+  userInput.style.height = Math.min(userInput.scrollHeight, 120) + 'px';
+});
+userInput.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChat(); }
+});
+sendBtn.addEventListener('click', sendChat);
+
+function addMsg(role, text) {
+  const welcome = messagesEl.querySelector('.welcome');
+  if (welcome) welcome.remove();
+  const wrap = document.createElement('div'); wrap.className = 'message '+role;
+  const bub = document.createElement('div'); bub.className = 'bubble'; bub.textContent = text;
+  const meta = document.createElement('div'); meta.className = 'meta'; meta.textContent = ts();
+  wrap.appendChild(bub); wrap.appendChild(meta);
+  messagesEl.appendChild(wrap);
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+}
+
+function showTyping() {
+  const wrap = document.createElement('div'); wrap.className = 'message coach'; wrap.id = 'typing';
+  const tb = document.createElement('div'); tb.className = 'typing-bubble';
+  tb.innerHTML = '<span></span><span></span><span></span>';
+  const meta = document.createElement('div'); meta.className = 'meta'; meta.textContent = 'Coach Apex skriver...';
+  wrap.appendChild(tb); wrap.appendChild(meta); messagesEl.appendChild(wrap);
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+}
+function hideTyping() { const el = document.getElementById('typing'); if (el) el.remove(); }
+
+async function callAPI(messages, system) {
+  const r = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey(),
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-5',
+      max_tokens: 2048,
+      system,
+      messages
+    })
   });
+  if (!r.ok) { const e = await r.json().catch(()=>({})); throw new Error(e.error?.message||`HTTP ${r.status}`); }
+  const d = await r.json();
+  return d.content[0].text;
+}
 
-  // Auto-resize textarea
-  userInput.addEventListener('input', () => {
-    userInput.style.height = 'auto';
-    userInput.style.height = Math.min(userInput.scrollHeight, 140) + 'px';
+async function sendChat() {
+  const text = userInput.value.trim();
+  if (!text) return;
+  if (!apiKey()) { apiKeyInput.focus(); return; }
+  addMsg('user', text);
+  chatHistory.push({ role:'user', content:text });
+  userInput.value = ''; userInput.style.height = 'auto';
+  sendBtn.disabled = true; showTyping();
+  try {
+    const reply = await callAPI(chatHistory,
+      'Du er Coach Apex, en entusiastisk og motiverende AI personal trainer. Svar alltid på norsk med konkrete og praktiske treningsråd. Hold svarene konsise og motiverende.');
+    hideTyping(); addMsg('coach', reply);
+    chatHistory.push({ role:'assistant', content:reply });
+  } catch(err) {
+    hideTyping(); addMsg('coach', '⚠️ Feil: '+err.message);
+  }
+  sendBtn.disabled = false; userInput.focus();
+}
+
+// ══════════════════════════════════════════════════════
+// SCREEN 2 — VEKTLOGG
+// ══════════════════════════════════════════════════════
+function getWeightLog() { return JSON.parse(localStorage.getItem('apex_weights')||'[]'); }
+function saveWeightLog(log) { localStorage.setItem('apex_weights', JSON.stringify(log)); }
+
+document.getElementById('log-weight-btn').addEventListener('click', () => {
+  const val = parseFloat(document.getElementById('weight-input').value);
+  if (isNaN(val) || val < 30 || val > 300) return;
+  const log = getWeightLog();
+  const today = todayStr();
+  const idx = log.findIndex(e => e.d === today);
+  if (idx >= 0) log[idx].w = val; else log.push({ d:today, w:val });
+  log.sort((a,b) => a.d.localeCompare(b.d));
+  saveWeightLog(log); renderWeightScreen();
+  document.getElementById('weight-input').value = '';
+});
+
+function renderWeightScreen() {
+  const log = getWeightLog();
+  const statStart = document.getElementById('stat-start');
+  const statNow = document.getElementById('stat-now');
+  const statDiff = document.getElementById('stat-diff');
+
+  if (log.length === 0) {
+    statStart.textContent = '–'; statNow.textContent = '–'; statDiff.textContent = '–';
+    document.getElementById('log-list').innerHTML = '<div style="color:var(--text3);text-align:center;padding:20px;font-size:13px">Ingen målinger ennå. Logg din første vekt!</div>';
+    drawGraph([]);
+    return;
+  }
+
+  const first = log[0].w; const last = log[log.length-1].w;
+  const diff = +(last - first).toFixed(1);
+  statStart.textContent = first+'kg';
+  statNow.textContent = last+'kg';
+  statDiff.textContent = (diff>0?'+':'')+diff+'kg';
+  statDiff.parentElement.style.color = diff > 0 ? '#ff5252' : (diff < 0 ? 'var(--green)' : 'var(--orange)');
+
+  // Graph: last 365 days
+  const cutoff = new Date(); cutoff.setDate(cutoff.getDate()-365);
+  const recent = log.filter(e => new Date(e.d) >= cutoff);
+  drawGraph(recent);
+
+  // List (last 30, newest first)
+  const listEl = document.getElementById('log-list');
+  const shown = [...log].reverse().slice(0,30);
+  listEl.innerHTML = '';
+  shown.forEach((e,i) => {
+    const prev = shown[i+1];
+    const div = document.createElement('div'); div.className = 'log-item';
+    const diff2 = prev ? +(e.w - prev.w).toFixed(1) : null;
+    const diffHtml = diff2 !== null
+      ? `<span class="log-diff ${diff2>0?'up':'down'}">${diff2>0?'+':''}${diff2}kg</span>`
+      : '';
+    div.innerHTML = `<span class="log-date">${e.d}</span><span class="log-val">${e.w} kg</span>${diffHtml}`;
+    listEl.appendChild(div);
   });
+}
 
-  // Send on Enter (Shift+Enter = newline)
-  userInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      sendMessage();
+function drawGraph(data) {
+  const svg = document.getElementById('weight-graph');
+  svg.innerHTML = '';
+  if (data.length < 2) {
+    svg.innerHTML = '<text x="180" y="90" text-anchor="middle" fill="#444" font-size="13">Ikke nok data</text>';
+    return;
+  }
+  const W=360, H=180, PAD=20;
+  const weights = data.map(e=>e.w);
+  const minW = Math.min(...weights), maxW = Math.max(...weights);
+  const range = maxW - minW || 1;
+
+  const px = (i) => PAD + (i/(data.length-1))*(W-PAD*2);
+  const py = (w) => H-PAD - ((w-minW)/range)*(H-PAD*2);
+
+  // grid lines
+  for (let i=0;i<4;i++) {
+    const y = PAD + i*(H-PAD*2)/3;
+    const line = document.createElementNS('http://www.w3.org/2000/svg','line');
+    line.setAttribute('x1',PAD); line.setAttribute('x2',W-PAD);
+    line.setAttribute('y1',y); line.setAttribute('y2',y);
+    line.setAttribute('stroke','#2a2a38'); line.setAttribute('stroke-width','1');
+    svg.appendChild(line);
+    const wVal = maxW - i*(range/3);
+    const txt = document.createElementNS('http://www.w3.org/2000/svg','text');
+    txt.setAttribute('x',2); txt.setAttribute('y',y+4);
+    txt.setAttribute('fill','#555'); txt.setAttribute('font-size','9');
+    txt.textContent = wVal.toFixed(1);
+    svg.appendChild(txt);
+  }
+
+  // gradient fill
+  const defs = document.createElementNS('http://www.w3.org/2000/svg','defs');
+  const grad = document.createElementNS('http://www.w3.org/2000/svg','linearGradient');
+  grad.setAttribute('id','wg'); grad.setAttribute('x1','0'); grad.setAttribute('x2','0'); grad.setAttribute('y1','0'); grad.setAttribute('y2','1');
+  grad.innerHTML = '<stop offset="0%" stop-color="#ff4d00" stop-opacity="0.3"/><stop offset="100%" stop-color="#ff4d00" stop-opacity="0"/>';
+  defs.appendChild(grad); svg.appendChild(defs);
+
+  let pathD = `M${px(0)} ${py(data[0].w)}`;
+  for (let i=1;i<data.length;i++) pathD += ` L${px(i)} ${py(data[i].w)}`;
+  const fillD = pathD + ` L${px(data.length-1)} ${H-PAD} L${px(0)} ${H-PAD} Z`;
+
+  const fill = document.createElementNS('http://www.w3.org/2000/svg','path');
+  fill.setAttribute('d',fillD); fill.setAttribute('fill','url(#wg)'); svg.appendChild(fill);
+
+  const line2 = document.createElementNS('http://www.w3.org/2000/svg','path');
+  line2.setAttribute('d',pathD); line2.setAttribute('fill','none');
+  line2.setAttribute('stroke','#ff4d00'); line2.setAttribute('stroke-width','2.5');
+  line2.setAttribute('stroke-linecap','round'); line2.setAttribute('stroke-linejoin','round');
+  svg.appendChild(line2);
+
+  // last point dot
+  const lastX = px(data.length-1), lastY = py(data[data.length-1].w);
+  const dot = document.createElementNS('http://www.w3.org/2000/svg','circle');
+  dot.setAttribute('cx',lastX); dot.setAttribute('cy',lastY); dot.setAttribute('r','5');
+  dot.setAttribute('fill','#ff4d00'); dot.setAttribute('stroke','#0d0d0f'); dot.setAttribute('stroke-width','2');
+  svg.appendChild(dot);
+}
+
+// ══════════════════════════════════════════════════════
+// SCREEN 3 — PROGRAM
+// ══════════════════════════════════════════════════════
+function getProgramData() {
+  const raw = localStorage.getItem('apex_program');
+  return raw ? JSON.parse(raw) : null;
+}
+function getChecked() { return JSON.parse(localStorage.getItem('apex_checked')||'{}'); }
+function saveChecked(c) { localStorage.setItem('apex_checked', JSON.stringify(c)); }
+
+// Auto-reset checked on new week
+function checkWeekReset() {
+  const storedMonday = localStorage.getItem('apex_week_monday');
+  const thisMonday = getMonday();
+  if (storedMonday !== thisMonday) {
+    localStorage.setItem('apex_week_monday', thisMonday);
+    localStorage.removeItem('apex_checked');
+  }
+}
+
+document.getElementById('gen-program-btn').addEventListener('click', generateProgram);
+
+async function generateProgram() {
+  if (!apiKey()) { apiKeyInput.focus(); return; }
+  const btn = document.getElementById('gen-program-btn');
+  btn.disabled = true; btn.textContent = 'Genererer...';
+  document.getElementById('program-content').innerHTML = '<div class="program-loading">Coach Apex lager din ukeplan... ⏳</div>';
+
+  const prompt = `Lag en detaljert ukentlig trenings- og kostholdsplan for mandag til søndag.
+Svar KUN med gyldig JSON på dette formatet (ingen tekst utenfor JSON):
+{
+  "days": [
+    {
+      "name": "Mandag",
+      "training": ["Øvelse 1", "Øvelse 2", "Øvelse 3"],
+      "meals": ["Frokost: ...", "Lunsj: ...", "Middag: ...", "Snacks: ..."]
     }
+  ]
+}
+Gjør planen variert, realistisk og motiverende. Treningsøktene skal inneholde 3-5 konkrete øvelser med sett/reps. Kostholdet skal være næringsrikt.`;
+
+  try {
+    const reply = await callAPI([{role:'user',content:prompt}],
+      'Du er Coach Apex, en profesjonell AI personal trainer. Du svarer alltid på norsk og lager strukturerte trenings- og kostholdsplaner.');
+
+    const jsonMatch = reply.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) throw new Error('Ugyldig svar fra API');
+    const data = JSON.parse(jsonMatch[0]);
+    localStorage.setItem('apex_program', JSON.stringify(data));
+    localStorage.removeItem('apex_checked');
+    localStorage.setItem('apex_week_monday', getMonday());
+    renderProgramScreen();
+  } catch(err) {
+    document.getElementById('program-content').innerHTML =
+      `<div class="program-empty"><strong>Feil</strong>${err.message}</div>`;
+  }
+  btn.disabled = false; btn.textContent = 'Generer nytt';
+}
+
+function renderProgramScreen() {
+  checkWeekReset();
+  const data = getProgramData();
+  const content = document.getElementById('program-content');
+
+  if (!data || !data.days) {
+    content.innerHTML = `<div class="program-empty"><strong>Ingen plan ennå</strong>Trykk «Generer nytt» for å lage<br>din personlige uke-plan med Coach Apex.</div>`;
+    return;
+  }
+
+  const checked = getChecked();
+  const todayName = DAYS[new Date().getDay()===0?6:new Date().getDay()-1];
+
+  content.innerHTML = '';
+  data.days.forEach((day, di) => {
+    const allTasks = [...(day.training||[]).map((t,i)=>({type:'t',i,text:t})),
+                      ...(day.meals||[]).map((m,i)=>({type:'m',i,text:m}))];
+    const doneCount = allTasks.filter(t=>checked[`${di}_${t.type}_${t.i}`]).length;
+
+    const card = document.createElement('div'); card.className = 'day-card';
+    const isToday = day.name === todayName;
+
+    card.innerHTML = `
+      <div class="day-header" onclick="toggleDay(${di})">
+        <span class="day-name${isToday?' today':''}">${day.name}${isToday?' 📍':''}</span>
+        <span class="day-progress">${doneCount}/${allTasks.length} gjort</span>
+      </div>
+      <div class="day-body${isToday?' open':''}" id="day-body-${di}">
+        <div class="day-section-title">🏋️ Treningsøkt</div>
+        ${(day.training||[]).map((t,i) => taskHTML(di,'t',i,t,checked)).join('')}
+        <div class="day-section-title">🥗 Kosthold</div>
+        ${(day.meals||[]).map((m,i) => taskHTML(di,'m',i,m,checked)).join('')}
+      </div>`;
+    content.appendChild(card);
   });
+}
 
-  sendBtn.addEventListener('click', sendMessage);
+function taskHTML(di, type, i, text, checked) {
+  const key = `${di}_${type}_${i}`;
+  const done = !!checked[key];
+  return `<div class="task-item">
+    <span class="task-text${done?' done':''}" id="tt-${key}">${text}</span>
+    <button class="done-btn${done?' checked':''}" id="db-${key}" onclick="toggleTask('${key}')">
+      <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+    </button>
+  </div>`;
+}
 
-  function addMessage(role, text) {
-    // Remove welcome if present
-    const welcome = messagesEl.querySelector('.welcome');
-    if (welcome) welcome.remove();
+function toggleDay(di) {
+  const body = document.getElementById('day-body-'+di);
+  body.classList.toggle('open');
+}
 
-    const wrap = document.createElement('div');
-    wrap.className = 'message ' + role;
+function toggleTask(key) {
+  const checked = getChecked();
+  checked[key] = !checked[key];
+  saveChecked(checked);
+  const btn = document.getElementById('db-'+key);
+  const txt = document.getElementById('tt-'+key);
+  if (btn) btn.classList.toggle('checked', checked[key]);
+  if (txt) txt.classList.toggle('done', checked[key]);
+  // update progress counts
+  renderProgramScreen();
+}
 
-    const bubble = document.createElement('div');
-    bubble.className = 'bubble';
-    bubble.textContent = text;
-
-    const meta = document.createElement('div');
-    meta.className = 'meta';
-    const now = new Date();
-    meta.textContent = now.getHours().toString().padStart(2,'0') + ':' +
-                       now.getMinutes().toString().padStart(2,'0');
-
-    wrap.appendChild(bubble);
-    wrap.appendChild(meta);
-    messagesEl.appendChild(wrap);
-    messagesEl.scrollTop = messagesEl.scrollHeight;
-
-    if (role === 'user' || role === 'coach') {
-      msgCount++;
-      msgCountEl.textContent = msgCount;
-    }
-
-    return bubble;
-  }
-
-  function showTyping() {
-    const wrap = document.createElement('div');
-    wrap.className = 'message coach';
-    wrap.id = 'typing-indicator';
-
-    const typingBubble = document.createElement('div');
-    typingBubble.className = 'typing-bubble';
-    typingBubble.innerHTML = '<span></span><span></span><span></span>';
-
-    const meta = document.createElement('div');
-    meta.className = 'meta';
-    meta.textContent = 'Coach Apex skriver...';
-
-    wrap.appendChild(typingBubble);
-    wrap.appendChild(meta);
-    messagesEl.appendChild(wrap);
-    messagesEl.scrollTop = messagesEl.scrollHeight;
-  }
-
-  function removeTyping() {
-    const el = document.getElementById('typing-indicator');
-    if (el) el.remove();
-  }
-
-  async function sendMessage() {
-    const text = userInput.value.trim();
-    if (!text) return;
-
-    const apiKey = apiKeyInput.value.trim();
-    if (!apiKey) {
-      apiKeyInput.focus();
-      apiKeyStatus.textContent = 'Legg inn nøkkel først!';
-      apiKeyStatus.className = '';
-      return;
-    }
-
-    addMessage('user', text);
-    history.push({ role: 'user', content: text });
-    userInput.value = '';
-    userInput.style.height = 'auto';
-    sendBtn.disabled = true;
-
-    showTyping();
-
-    try {
-      const response = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': apiKey,
-          'anthropic-version': '2023-06-01',
-          'anthropic-dangerous-direct-browser-access': 'true'
-        },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-5',
-          max_tokens: 1024,
-          system: 'Du er Coach Apex, en entusiastisk og motiverende AI personal trainer. Svar alltid på norsk med konkrete og praktiske treningsråd.',
-          messages: history
-        })
-      });
-
-      if (!response.ok) {
-        const err = await response.json().catch(() => ({}));
-        throw new Error(err.error?.message || `HTTP ${response.status}`);
-      }
-
-      const data = await response.json();
-      const reply = data.content[0].text;
-
-      removeTyping();
-      addMessage('coach', reply);
-      history.push({ role: 'assistant', content: reply });
-
-    } catch (err) {
-      removeTyping();
-      addMessage('coach', '⚠️ Feil: ' + err.message + '\n\nSjekk at API-nøkkelen er korrekt og har tilgang til Claude API.');
-    }
-
-    sendBtn.disabled = false;
-    userInput.focus();
-  }
+// ── INIT ──────────────────────────────────────────────
+checkWeekReset();
+renderWeightScreen();
 </script>
 </body>
 </html>
