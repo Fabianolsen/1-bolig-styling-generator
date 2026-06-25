@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Coach Apex</title>
+<title>Coach Fabian</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
@@ -19,84 +19,41 @@
     --text3: #444;
     --green: #00e676;
     --nav-h: 72px;
+    --api-h: 48px;
   }
 
-  html, body {
-    height: 100%; width: 100%;
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'Segoe UI', system-ui, sans-serif;
-    overflow: hidden;
-  }
+  html, body { height: 100%; width: 100%; background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; overflow: hidden; }
 
   /* ── API BAR ── */
   #api-bar {
     position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-    background: #16161a;
-    border-bottom: 1px solid var(--border);
-    padding: 8px 16px;
-    display: flex; align-items: center; gap: 10px;
-    height: 48px;
+    background: #16161a; border-bottom: 1px solid var(--border);
+    padding: 8px 16px; display: flex; align-items: center; gap: 10px; height: var(--api-h);
   }
   #api-bar label { font-size: 11px; color: var(--text2); white-space: nowrap; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; }
-  #api-key-input {
-    flex: 1; background: var(--bg); border: 1px solid var(--border);
-    border-radius: 6px; color: var(--text); padding: 6px 10px;
-    font-size: 13px; font-family: monospace; outline: none;
-  }
+  #api-key-input { flex: 1; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--text); padding: 6px 10px; font-size: 13px; font-family: monospace; outline: none; }
   #api-key-input:focus { border-color: var(--orange); }
   #api-key-status { font-size: 11px; color: var(--orange); white-space: nowrap; }
   #api-key-status.ok { color: var(--green); }
 
-  /* ── SCREENS ── */
-  #app {
-    position: fixed;
-    top: 48px; left: 0; right: 0;
-    bottom: var(--nav-h);
-    overflow: hidden;
-  }
+  /* ── LAYOUT ── */
+  #app { position: fixed; top: var(--api-h); left: 0; right: 0; bottom: var(--nav-h); overflow: hidden; }
+  .screen { position: absolute; inset: 0; overflow-y: auto; overflow-x: hidden; opacity: 0; pointer-events: none; transform: translateY(10px); transition: opacity .22s ease, transform .22s ease; -webkit-overflow-scrolling: touch; }
+  .screen.active { opacity: 1; pointer-events: all; transform: translateY(0); }
+  .screen::-webkit-scrollbar { width: 4px; }
+  .screen::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 
-  .screen {
-    position: absolute; inset: 0;
-    overflow-y: auto; overflow-x: hidden;
-    opacity: 0; pointer-events: none;
-    transform: translateY(12px);
-    transition: opacity .25s ease, transform .25s ease;
-    -webkit-overflow-scrolling: touch;
-  }
-  .screen.active {
-    opacity: 1; pointer-events: all; transform: translateY(0);
-  }
-
-  /* ── NAV BAR ── */
+  /* ── NAV ── */
   #nav {
-    position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
-    height: var(--nav-h);
-    background: #16161a;
-    border-top: 1px solid var(--border);
-    display: flex; align-items: center; justify-content: space-around;
-    padding: 0 8px 8px;
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 100; height: var(--nav-h);
+    background: #16161a; border-top: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-around; padding: 0 8px 8px;
   }
-  .nav-btn {
-    display: flex; flex-direction: column; align-items: center; gap: 4px;
-    background: none; border: none; color: var(--text3);
-    cursor: pointer; padding: 8px 16px; border-radius: 12px;
-    transition: color .2s, background .2s; font-size: 11px; font-weight: 600;
-    text-transform: uppercase; letter-spacing: .06em;
-  }
+  .nav-btn { display: flex; flex-direction: column; align-items: center; gap: 4px; background: none; border: none; color: var(--text3); cursor: pointer; padding: 8px 16px; border-radius: 12px; transition: color .2s; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; }
   .nav-btn svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
   .nav-btn.active { color: var(--orange); }
   .nav-btn.active svg { stroke: var(--orange); }
-
-  .nav-center-btn {
-    position: relative;
-    background: linear-gradient(135deg, var(--orange), var(--orange2));
-    border: none; border-radius: 50%; width: 60px; height: 60px;
-    cursor: pointer; display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 0 20px rgba(255,77,0,.4);
-    transition: box-shadow .2s, transform .15s;
-    margin-bottom: 8px;
-  }
+  .nav-center-btn { background: linear-gradient(135deg, var(--orange), var(--orange2)); border: none; border-radius: 50%; width: 60px; height: 60px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 20px rgba(255,77,0,.4); transition: box-shadow .2s, transform .15s; margin-bottom: 8px; }
   .nav-center-btn:active { transform: scale(.93); }
   .nav-center-btn.active { box-shadow: 0 0 30px rgba(255,77,0,.7); }
   .nav-center-btn svg { width: 32px; height: 32px; }
@@ -104,223 +61,280 @@
   /* ══════════════════════════════
      SCREEN 1 – CHAT
   ══════════════════════════════ */
-  #screen-chat {
-    display: flex; flex-direction: column;
+  #screen-chat { display: flex; flex-direction: column; }
+
+  /* Coach header */
+  #coach-header {
+    background: var(--bg2); border-bottom: 1px solid var(--border);
+    padding: 12px 16px; display: flex; align-items: center; gap: 14px; flex-shrink: 0;
   }
-  #messages {
-    flex: 1; padding: 20px 16px;
-    display: flex; flex-direction: column; gap: 14px;
-    overflow-y: auto;
-  }
-  .message { display: flex; flex-direction: column; max-width: 82%; }
+  #coach-avatar-wrap { position: relative; flex-shrink: 0; }
+  #coach-avatar { width: 64px; height: 64px; }
+  #coach-avatar.nodding { animation: nod .5s ease; }
+  @keyframes nod { 0%{transform:translateY(0)} 30%{transform:translateY(-4px)} 60%{transform:translateY(2px)} 100%{transform:translateY(0)} }
+  .online-dot { position: absolute; bottom: 3px; right: 3px; width: 11px; height: 11px; background: var(--green); border-radius: 50%; border: 2px solid var(--bg2); animation: pulse-dot 2s ease-in-out infinite; }
+  @keyframes pulse-dot { 0%,100%{opacity:1}50%{opacity:.4} }
+  #coach-info { flex: 1; }
+  #coach-name { font-size: 17px; font-weight: 800; background: linear-gradient(90deg, var(--orange), var(--orange2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+  #coach-status { font-size: 12px; color: var(--green); margin-top: 1px; }
+  #coach-badge { display: inline-block; background: rgba(255,77,0,.15); border: 1px solid rgba(255,77,0,.3); border-radius: 20px; padding: 2px 8px; font-size: 10px; color: var(--orange); font-weight: 700; letter-spacing: .06em; text-transform: uppercase; margin-top: 4px; }
+
+  #messages { flex: 1; padding: 16px; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; }
+  #messages::-webkit-scrollbar { width: 4px; }
+  #messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .message { display: flex; flex-direction: column; max-width: 80%; animation: fadeUp .2s ease; }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
   .message.user { align-self: flex-end; align-items: flex-end; }
   .message.coach { align-self: flex-start; align-items: flex-start; }
-  .bubble {
-    padding: 11px 14px; border-radius: 18px;
-    font-size: 14px; line-height: 1.55; white-space: pre-wrap; word-break: break-word;
-  }
+
+  .coach-msg-row { display: flex; gap: 8px; align-items: flex-end; }
+  .coach-mini-avatar { width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg, var(--orange), var(--orange2)); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .coach-mini-avatar svg { width: 20px; height: 20px; }
+
+  .bubble { padding: 10px 14px; border-radius: 18px; font-size: 14px; line-height: 1.55; white-space: pre-wrap; word-break: break-word; }
   .message.user .bubble { background: linear-gradient(135deg, var(--orange), var(--orange2)); color: #fff; border-bottom-right-radius: 4px; }
   .message.coach .bubble { background: var(--bg3); color: #dddde8; border-bottom-left-radius: 4px; border: 1px solid var(--border); }
   .meta { font-size: 10px; color: var(--text3); margin-top: 3px; padding: 0 4px; }
-  .typing-bubble { display: flex; gap: 5px; padding: 13px 16px; background: var(--bg3); border-radius: 18px; border-bottom-left-radius: 4px; border: 1px solid var(--border); }
+
+  .typing-bubble { display: flex; gap: 5px; padding: 12px 15px; background: var(--bg3); border-radius: 18px; border-bottom-left-radius: 4px; border: 1px solid var(--border); }
   .typing-bubble span { width: 7px; height: 7px; border-radius: 50%; background: var(--orange); animation: bounce 1.2s ease-in-out infinite; }
-  .typing-bubble span:nth-child(2) { animation-delay: .2s; }
-  .typing-bubble span:nth-child(3) { animation-delay: .4s; }
-  @keyframes bounce { 0%,80%,100%{transform:translateY(0);opacity:.4}40%{transform:translateY(-6px);opacity:1} }
-  .welcome { text-align: center; padding: 40px 20px; color: var(--text3); font-size: 14px; line-height: 1.9; }
+  .typing-bubble span:nth-child(2){animation-delay:.2s} .typing-bubble span:nth-child(3){animation-delay:.4s}
+  @keyframes bounce{0%,80%,100%{transform:translateY(0);opacity:.4}40%{transform:translateY(-6px);opacity:1}}
+
+  .welcome { text-align: center; padding: 30px 20px; color: var(--text3); font-size: 14px; line-height: 1.9; }
   .welcome strong { color: var(--orange); }
-  #chat-input-area {
-    padding: 12px 12px 14px;
-    background: var(--bg2);
-    border-top: 1px solid var(--border);
-    display: flex; gap: 10px; align-items: flex-end;
-  }
-  #user-input {
-    flex: 1; background: var(--bg3); border: 1px solid var(--border);
-    border-radius: 20px; color: var(--text); padding: 10px 14px;
-    font-size: 14px; font-family: inherit; resize: none; outline: none;
-    max-height: 120px; line-height: 1.4;
-  }
+
+  #chat-input-area { padding: 10px 12px 12px; background: var(--bg2); border-top: 1px solid var(--border); display: flex; gap: 10px; align-items: flex-end; flex-shrink: 0; }
+  #user-input { flex: 1; background: var(--bg3); border: 1px solid var(--border); border-radius: 20px; color: var(--text); padding: 10px 14px; font-size: 14px; font-family: inherit; resize: none; outline: none; max-height: 120px; line-height: 1.4; }
   #user-input:focus { border-color: var(--orange); }
   #user-input::placeholder { color: var(--text3); }
-  #send-btn {
-    background: linear-gradient(135deg, var(--orange), var(--orange2));
-    border: none; border-radius: 50%; width: 42px; height: 42px;
-    cursor: pointer; display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0; transition: opacity .2s;
-  }
+  #send-btn { background: linear-gradient(135deg, var(--orange), var(--orange2)); border: none; border-radius: 50%; width: 42px; height: 42px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: opacity .2s; }
   #send-btn:disabled { opacity: .35; }
   #send-btn svg { width: 18px; height: 18px; fill: white; }
 
   /* ══════════════════════════════
      SCREEN 2 – VEKTLOGG
   ══════════════════════════════ */
-  #screen-vekt { padding: 20px 16px 24px; }
-  .screen-title {
-    font-size: 20px; font-weight: 800; letter-spacing: .04em;
-    margin-bottom: 20px;
-    background: linear-gradient(90deg, var(--orange), var(--orange2));
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-  }
-
-  .weight-input-card {
-    background: var(--bg3); border: 1px solid var(--border);
-    border-radius: 16px; padding: 18px; margin-bottom: 20px;
-    display: flex; gap: 12px; align-items: center;
-  }
-  .weight-input-card input[type="number"] {
-    flex: 1; background: var(--bg2); border: 1px solid var(--border);
-    border-radius: 10px; color: var(--text); padding: 10px 14px;
-    font-size: 22px; font-weight: 700; outline: none; width: 100%;
-  }
+  #screen-vekt { padding: 20px 16px 32px; }
+  .screen-title { font-size: 20px; font-weight: 800; letter-spacing: .04em; margin-bottom: 20px; background: linear-gradient(90deg, var(--orange), var(--orange2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+  .weight-input-card { background: var(--bg3); border: 1px solid var(--border); border-radius: 16px; padding: 16px; margin-bottom: 18px; display: flex; gap: 10px; align-items: center; }
+  .weight-input-card input[type="number"] { flex: 1; background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; color: var(--text); padding: 10px 14px; font-size: 22px; font-weight: 700; outline: none; }
   .weight-input-card input[type="number"]:focus { border-color: var(--orange); }
   .weight-input-card input[type="number"]::placeholder { color: var(--text3); font-size: 16px; font-weight: 400; }
   .weight-unit { font-size: 18px; color: var(--text2); font-weight: 600; }
-  #log-weight-btn {
-    background: linear-gradient(135deg, var(--orange), var(--orange2));
-    border: none; border-radius: 10px; color: #fff;
-    padding: 11px 22px; font-size: 14px; font-weight: 700; cursor: pointer;
-    white-space: nowrap; transition: opacity .2s;
-  }
-  #log-weight-btn:active { opacity: .8; }
-
-  .stats-row {
-    display: flex; gap: 10px; margin-bottom: 20px;
-  }
-  .stat-card {
-    flex: 1; background: var(--bg3); border: 1px solid var(--border);
-    border-radius: 14px; padding: 14px 12px; text-align: center;
-  }
-  .stat-card .val { font-size: 22px; font-weight: 800; color: var(--orange); }
+  #log-weight-btn { background: linear-gradient(135deg, var(--orange), var(--orange2)); border: none; border-radius: 10px; color: #fff; padding: 11px 20px; font-size: 14px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+  .stats-row { display: flex; gap: 10px; margin-bottom: 18px; }
+  .stat-card { flex: 1; background: var(--bg3); border: 1px solid var(--border); border-radius: 14px; padding: 14px 10px; text-align: center; }
+  .stat-card .val { font-size: 20px; font-weight: 800; color: var(--orange); }
   .stat-card .lbl { font-size: 10px; color: var(--text2); text-transform: uppercase; letter-spacing: .08em; margin-top: 3px; }
-
-  .graph-card {
-    background: var(--bg3); border: 1px solid var(--border);
-    border-radius: 16px; padding: 16px; margin-bottom: 20px;
-  }
+  .graph-card { background: var(--bg3); border: 1px solid var(--border); border-radius: 16px; padding: 16px; margin-bottom: 18px; }
   .graph-title { font-size: 13px; color: var(--text2); font-weight: 600; margin-bottom: 10px; text-transform: uppercase; letter-spacing: .06em; }
-  #weight-graph { width: 100%; height: 180px; display: block; }
-
-  .graph-filters {
-    display: flex; gap: 6px; margin-bottom: 12px;
-  }
-  .graph-filter-btn {
-    background: none; border: 1.5px solid var(--border);
-    border-radius: 8px; color: var(--text2); font-size: 12px; font-weight: 600;
-    padding: 5px 12px; cursor: pointer; transition: all .2s;
-  }
-  .graph-filter-btn.active {
-    background: var(--orange); border-color: var(--orange); color: #fff;
-  }
-
-  .log-list { display: flex; flex-direction: column; gap: 8px; }
-  .log-item {
-    background: var(--bg3); border: 1px solid var(--border);
-    border-radius: 10px; padding: 11px 14px;
-    display: flex; justify-content: space-between; align-items: center;
-  }
+  #weight-graph { width: 100%; height: 160px; display: block; }
+  .graph-filters { display: flex; gap: 6px; margin-bottom: 12px; }
+  .graph-filter-btn { background: none; border: 1.5px solid var(--border); border-radius: 8px; color: var(--text2); font-size: 12px; font-weight: 600; padding: 5px 12px; cursor: pointer; transition: all .2s; }
+  .graph-filter-btn.active { background: var(--orange); border-color: var(--orange); color: #fff; }
+  .log-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 24px; }
+  .log-item { background: var(--bg3); border: 1px solid var(--border); border-radius: 10px; padding: 11px 14px; display: flex; justify-content: space-between; align-items: center; }
   .log-item .log-date { font-size: 13px; color: var(--text2); }
-  .log-item .log-val { font-size: 16px; font-weight: 700; color: var(--text); }
+  .log-item .log-val { font-size: 16px; font-weight: 700; }
   .log-item .log-diff { font-size: 12px; }
   .log-item .log-diff.up { color: #ff5252; }
   .log-item .log-diff.down { color: var(--green); }
 
+  /* PHOTO SECTION */
+  .section-header { font-size: 16px; font-weight: 800; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+  .photo-upload-card { background: var(--bg3); border: 2px dashed var(--border); border-radius: 16px; padding: 20px; margin-bottom: 18px; text-align: center; cursor: pointer; transition: border-color .2s; }
+  .photo-upload-card:hover { border-color: var(--orange); }
+  .photo-upload-card input[type="file"] { display: none; }
+  .photo-upload-label { cursor: pointer; }
+  .photo-upload-icon { font-size: 32px; margin-bottom: 8px; }
+  .photo-upload-text { font-size: 14px; color: var(--text2); }
+  .photo-upload-text strong { color: var(--orange); }
+  #photo-today-preview { margin-bottom: 18px; display: none; }
+  #photo-today-preview img { width: 100%; border-radius: 12px; max-height: 280px; object-fit: cover; }
+  #photo-today-date { font-size: 12px; color: var(--text2); margin-top: 6px; text-align: center; }
+
+  .photo-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 18px; }
+  .photo-thumb { position: relative; aspect-ratio: 1; border-radius: 10px; overflow: hidden; cursor: pointer; border: 2px solid transparent; transition: border-color .2s; }
+  .photo-thumb:hover { border-color: var(--orange); }
+  .photo-thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .photo-thumb-date { position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,.6); font-size: 9px; color: #fff; padding: 3px 4px; text-align: center; }
+
+  .compare-card { background: var(--bg3); border: 1px solid var(--border); border-radius: 16px; padding: 16px; margin-bottom: 18px; }
+  .compare-selects { display: flex; gap: 10px; margin-bottom: 14px; }
+  .compare-selects select { flex: 1; background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; color: var(--text); padding: 8px 10px; font-size: 13px; outline: none; }
+  .compare-selects select:focus { border-color: var(--orange); }
+  #compare-btn { width: 100%; background: linear-gradient(135deg, var(--orange), var(--orange2)); border: none; border-radius: 10px; color: #fff; padding: 10px; font-size: 14px; font-weight: 700; cursor: pointer; margin-bottom: 14px; }
+  #compare-result { display: none; gap: 10px; }
+  #compare-result.show { display: flex; }
+  .compare-photo { flex: 1; text-align: center; }
+  .compare-photo img { width: 100%; border-radius: 10px; max-height: 200px; object-fit: cover; }
+  .compare-photo-label { font-size: 12px; color: var(--text2); margin-top: 6px; }
+  .compare-photo-weight { font-size: 14px; font-weight: 700; color: var(--orange); }
+
   /* ══════════════════════════════
-     SCREEN 3 – PROGRAM
+     SCREEN 3 – PROGRAM / JOURNEY
   ══════════════════════════════ */
-  #screen-program { padding: 20px 16px 24px; }
+  #screen-program { padding: 20px 16px 32px; }
+  .program-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  .week-reset-note { font-size: 11px; color: var(--text3); margin-bottom: 20px; }
+  #gen-week-btn { background: linear-gradient(135deg, var(--orange), var(--orange2)); border: none; border-radius: 10px; color: #fff; padding: 10px 16px; font-size: 13px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+  #gen-week-btn:disabled { opacity: .4; }
 
-  .program-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-  #gen-program-btn {
-    background: linear-gradient(135deg, var(--orange), var(--orange2));
-    border: none; border-radius: 10px; color: #fff;
-    padding: 10px 18px; font-size: 13px; font-weight: 700; cursor: pointer;
-    transition: opacity .2s;
-  }
-  #gen-program-btn:disabled { opacity: .4; }
+  /* Journey map */
+  .journey-map { display: flex; flex-direction: column; align-items: center; margin-bottom: 24px; gap: 0; }
+  .journey-step { display: flex; flex-direction: column; align-items: center; width: 100%; }
+  .journey-connector { width: 3px; height: 28px; background: var(--border); border-radius: 2px; }
+  .journey-connector.done { background: var(--green); }
+  .journey-connector.active { background: linear-gradient(180deg, var(--orange), var(--border)); }
 
-  .week-reset-note { font-size: 11px; color: var(--text3); margin-bottom: 16px; }
+  .journey-node { display: flex; align-items: center; gap: 14px; width: 100%; padding: 0 12px; cursor: pointer; }
+  .journey-circle {
+    width: 56px; height: 56px; border-radius: 50%; border: 3px solid var(--border);
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .04em;
+    color: var(--text3); background: var(--bg3); transition: all .25s;
+    position: relative;
+  }
+  .journey-circle.active {
+    border-color: var(--orange); color: var(--orange);
+    box-shadow: 0 0 20px rgba(255,77,0,.4);
+    background: rgba(255,77,0,.08);
+  }
+  .journey-circle.done {
+    border-color: var(--green); color: var(--green);
+    background: rgba(0,230,118,.08);
+  }
+  .journey-circle.locked { opacity: .4; cursor: default; }
+  .journey-circle svg { width: 22px; height: 22px; }
 
-  .day-card {
-    background: var(--bg3); border: 1px solid var(--border);
-    border-radius: 16px; margin-bottom: 12px; overflow: hidden;
-  }
-  .day-header {
-    padding: 13px 16px; display: flex; justify-content: space-between; align-items: center;
-    cursor: pointer; user-select: none;
-  }
+  .journey-info { flex: 1; }
+  .journey-week-label { font-size: 15px; font-weight: 700; }
+  .journey-week-label.active { color: var(--orange); }
+  .journey-week-label.done { color: var(--green); }
+  .journey-progress-bar { height: 4px; background: var(--border); border-radius: 2px; margin-top: 5px; overflow: hidden; }
+  .journey-progress-fill { height: 100%; border-radius: 2px; background: linear-gradient(90deg, var(--orange), var(--orange2)); transition: width .4s ease; }
+  .journey-progress-fill.done { background: var(--green); }
+  .journey-progress-text { font-size: 11px; color: var(--text2); margin-top: 3px; }
+
+  /* Week expand panel */
+  .week-panel { width: 100%; background: var(--bg3); border: 1px solid var(--border); border-radius: 16px; margin-top: 12px; overflow: hidden; display: none; }
+  .week-panel.open { display: block; }
+
+  .day-card { border-bottom: 1px solid var(--border); overflow: hidden; }
+  .day-card:last-child { border-bottom: none; }
+  .day-header { padding: 13px 16px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none; }
   .day-name { font-size: 15px; font-weight: 700; }
   .day-name.today { color: var(--orange); }
-  .day-progress { font-size: 12px; color: var(--text2); }
+  .day-progress-text { font-size: 12px; color: var(--text2); }
   .day-body { padding: 0 16px 14px; display: none; }
   .day-body.open { display: block; }
-
   .day-section-title { font-size: 11px; color: var(--text2); text-transform: uppercase; letter-spacing: .08em; margin: 12px 0 6px; }
-  .task-item {
-    display: flex; align-items: flex-start; gap: 10px;
-    padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,.04);
-  }
+  .task-item { display: flex; align-items: flex-start; gap: 10px; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,.04); }
   .task-item:last-child { border-bottom: none; }
   .task-text { flex: 1; font-size: 13px; line-height: 1.5; color: var(--text); }
   .task-text.done { color: var(--text3); text-decoration: line-through; }
-  .done-btn {
-    flex-shrink: 0; background: none; border: 1.5px solid var(--border);
-    border-radius: 6px; width: 28px; height: 28px; cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    transition: background .2s, border-color .2s;
-  }
+  .done-btn { flex-shrink: 0; background: none; border: 1.5px solid var(--border); border-radius: 6px; width: 28px; height: 28px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background .2s, border-color .2s; }
   .done-btn.checked { background: var(--green); border-color: var(--green); }
   .done-btn svg { width: 14px; height: 14px; stroke: #fff; stroke-width: 3; fill: none; stroke-linecap: round; stroke-linejoin: round; }
 
-  .program-empty {
-    text-align: center; padding: 60px 20px; color: var(--text3);
-    font-size: 14px; line-height: 2;
-  }
+  .program-empty { text-align: center; padding: 50px 20px; color: var(--text3); font-size: 14px; line-height: 2; }
   .program-empty strong { color: var(--orange); display: block; font-size: 18px; margin-bottom: 8px; }
+  .program-loading { text-align: center; padding: 40px 20px; color: var(--text2); font-size: 14px; }
 
-  .program-loading {
-    text-align: center; padding: 40px 20px; color: var(--text2); font-size: 14px;
-  }
-
-  /* scrollbar */
-  .screen::-webkit-scrollbar { width: 4px; }
-  .screen::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-  #messages::-webkit-scrollbar { width: 4px; }
-  #messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-
-  @keyframes fadeUp { from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)} }
+  @keyframes bounce2 { 0%,100%{transform:rotate(-14deg)} 50%{transform:rotate(14deg)} }
 </style>
 </head>
 <body>
 
-<!-- API KEY BAR -->
 <div id="api-bar">
   <label>API-nøkkel</label>
   <input type="password" id="api-key-input" placeholder="sk-ant-..." autocomplete="off">
   <span id="api-key-status">Ikke satt</span>
 </div>
 
-<!-- SCREENS -->
 <div id="app">
 
-  <!-- CHAT -->
+  <!-- ── CHAT ── -->
   <div id="screen-chat" class="screen active">
+
+    <div id="coach-header">
+      <div id="coach-avatar-wrap">
+        <svg id="coach-avatar" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="cg1" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#ff4d00"/><stop offset="100%" style="stop-color:#ff9a00"/>
+            </linearGradient>
+            <linearGradient id="cg2" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#e8b89a"/><stop offset="100%" style="stop-color:#c8906a"/>
+            </linearGradient>
+          </defs>
+          <!-- legs -->
+          <rect x="38" y="68" width="10" height="26" rx="4" fill="#1a1a22"/>
+          <rect x="52" y="68" width="10" height="26" rx="4" fill="#1a1a22"/>
+          <!-- shoes -->
+          <rect x="34" y="91" width="17" height="6" rx="3" fill="url(#cg1)"/>
+          <rect x="49" y="91" width="17" height="6" rx="3" fill="url(#cg1)"/>
+          <!-- torso -->
+          <rect x="32" y="42" width="36" height="30" rx="8" fill="url(#cg1)"/>
+          <text x="50" y="62" text-anchor="middle" font-size="7" font-weight="900" fill="white" opacity=".7">CF</text>
+          <!-- left arm -->
+          <g style="transform-origin:36px 48px;animation:bounce2 2.2s ease-in-out infinite">
+            <rect x="18" y="44" width="18" height="9" rx="4" fill="url(#cg1)"/>
+            <circle cx="14" cy="48" r="6" fill="url(#cg2)"/>
+          </g>
+          <!-- right arm -->
+          <g style="transform-origin:64px 48px;animation:bounce2 2.2s ease-in-out infinite reverse">
+            <rect x="64" y="44" width="18" height="9" rx="4" fill="url(#cg1)"/>
+            <circle cx="86" cy="48" r="6" fill="url(#cg2)"/>
+          </g>
+          <!-- neck -->
+          <rect x="45" y="33" width="10" height="12" rx="4" fill="url(#cg2)"/>
+          <!-- head -->
+          <ellipse cx="50" cy="26" rx="17" ry="18" fill="url(#cg2)"/>
+          <!-- hair -->
+          <ellipse cx="50" cy="11" rx="17" ry="9" fill="#222"/>
+          <rect x="33" y="11" width="34" height="7" rx="4" fill="#222"/>
+          <!-- eyes -->
+          <ellipse cx="44" cy="25" rx="3" ry="3.5" fill="white"/>
+          <ellipse cx="56" cy="25" rx="3" ry="3.5" fill="white"/>
+          <circle cx="44.8" cy="26" r="2" fill="#222"/>
+          <circle cx="56.8" cy="26" r="2" fill="#222"/>
+          <!-- smile -->
+          <path d="M43 32 Q50 37 57 32" stroke="#c87050" stroke-width="2" fill="none" stroke-linecap="round"/>
+          <!-- eyebrows -->
+          <path d="M41 21 Q44 19 47 21" stroke="#222" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+          <path d="M53 21 Q56 19 59 21" stroke="#222" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+          <!-- headband -->
+          <path d="M33 17 Q50 11 67 17" stroke="#ff4d00" stroke-width="3.5" fill="none" stroke-linecap="round" opacity=".9"/>
+        </svg>
+        <div class="online-dot"></div>
+      </div>
+      <div id="coach-info">
+        <div id="coach-name">Coach Fabian</div>
+        <div id="coach-status">Online 🟢</div>
+        <div id="coach-badge">AI Personlig Trener</div>
+      </div>
+    </div>
+
     <div id="messages">
       <div class="welcome">
-        <strong>Hei! Jeg er Coach Apex 💪</strong>
+        <strong>Hei! Jeg er Coach Fabian 💪</strong>
         Din personlige AI-trener.<br>
         Spør meg om trening, kosthold eller motivasjon!
       </div>
     </div>
+
     <div id="chat-input-area">
-      <textarea id="user-input" rows="1" placeholder="Spør Coach Apex..."></textarea>
-      <button id="send-btn" title="Send">
+      <textarea id="user-input" rows="1" placeholder="Spør Coach Fabian..."></textarea>
+      <button id="send-btn">
         <svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
       </button>
     </div>
   </div>
 
-  <!-- VEKTLOGG -->
+  <!-- ── VEKTLOGG ── -->
   <div id="screen-vekt" class="screen">
     <div class="screen-title">Vektlogg</div>
 
@@ -343,30 +357,66 @@
         <button class="graph-filter-btn active" onclick="setGraphFilter(30)" data-days="30">1 mnd</button>
         <button class="graph-filter-btn" onclick="setGraphFilter(90)" data-days="90">3 mnd</button>
       </div>
-      <svg id="weight-graph" viewBox="0 0 360 180" preserveAspectRatio="none"></svg>
+      <svg id="weight-graph" viewBox="0 0 360 160" preserveAspectRatio="none"></svg>
     </div>
 
     <div class="log-list" id="log-list"></div>
-  </div>
 
-  <!-- PROGRAM -->
-  <div id="screen-program" class="screen">
-    <div class="program-header">
-      <div class="screen-title" style="margin-bottom:0">Ukesprogram</div>
-      <button id="gen-program-btn">Generer nytt</button>
+    <!-- PHOTO SECTION -->
+    <div class="section-header">📸 Fremgangsbilde</div>
+
+    <div class="photo-upload-card" onclick="document.getElementById('photo-file-input').click()">
+      <label class="photo-upload-label">
+        <input type="file" id="photo-file-input" accept="image/*" capture="environment">
+        <div class="photo-upload-icon">📷</div>
+        <div class="photo-upload-text">Tap for å laste opp <strong>dagens bilde</strong></div>
+      </label>
     </div>
-    <div class="week-reset-note">Fullførte oppgaver nullstilles automatisk hver mandag.</div>
-    <div id="program-content">
-      <div class="program-empty">
-        <strong>Ingen plan ennå</strong>
-        Trykk «Generer nytt» for å lage<br>din personlige uke-plan med Coach Apex.
+
+    <div id="photo-today-preview">
+      <img id="photo-today-img" src="" alt="Dagens bilde">
+      <div id="photo-today-date"></div>
+    </div>
+
+    <div id="photo-grid" class="photo-grid"></div>
+
+    <!-- SAMMENLIGN -->
+    <div class="compare-card">
+      <div class="section-header" style="font-size:14px;margin-bottom:12px">⚖️ Sammenlign bilder</div>
+      <div class="compare-selects">
+        <select id="compare-a"><option value="">Velg dato A</option></select>
+        <select id="compare-b"><option value="">Velg dato B</option></select>
+      </div>
+      <button id="compare-btn">Sammenlign</button>
+      <div id="compare-result">
+        <div class="compare-photo" id="compare-photo-a">
+          <img src="" alt="">
+          <div class="compare-photo-label" id="compare-label-a"></div>
+          <div class="compare-photo-weight" id="compare-weight-a"></div>
+        </div>
+        <div class="compare-photo" id="compare-photo-b">
+          <img src="" alt="">
+          <div class="compare-photo-label" id="compare-label-b"></div>
+          <div class="compare-photo-weight" id="compare-weight-b"></div>
+        </div>
       </div>
     </div>
   </div>
 
+  <!-- ── PROGRAM ── -->
+  <div id="screen-program" class="screen">
+    <div class="program-header">
+      <div class="screen-title" style="margin-bottom:0">Treningsreise</div>
+      <button id="gen-week-btn">+ Ny uke</button>
+    </div>
+    <div class="week-reset-note">Fullførte oppgaver nullstilles automatisk hver mandag.</div>
+    <div id="journey-map" class="journey-map"></div>
+    <div id="week-expand-panel"></div>
+  </div>
+
 </div>
 
-<!-- BOTTOM NAV -->
+<!-- NAV -->
 <nav id="nav">
   <button class="nav-btn" id="nav-vekt" onclick="switchScreen('vekt')">
     <svg viewBox="0 0 24 24"><path d="M12 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8z"/><path d="M3 21h18M5 21l1.5-6h11L19 21"/><path d="M9 15v-2h6v2"/></svg>
@@ -381,31 +431,22 @@
           <stop offset="100%" style="stop-color:#ffe0cc"/>
         </linearGradient>
       </defs>
-      <!-- legs -->
       <rect x="72" y="118" width="14" height="38" rx="6" fill="rgba(255,255,255,.15)"/>
       <rect x="94" y="118" width="14" height="38" rx="6" fill="rgba(255,255,255,.15)"/>
-      <!-- torso -->
       <rect x="62" y="72" width="56" height="50" rx="10" fill="rgba(255,255,255,.25)"/>
-      <!-- left arm -->
       <g style="transform-origin:72px 80px;animation:bounce2 2.2s ease-in-out infinite">
         <rect x="38" y="75" width="28" height="11" rx="5" fill="rgba(255,255,255,.25)"/>
         <circle cx="34" cy="80" r="7" fill="url(#nb)"/>
       </g>
-      <!-- right arm -->
       <g style="transform-origin:108px 80px;animation:bounce2 2.2s ease-in-out infinite reverse">
         <rect x="114" y="75" width="28" height="11" rx="5" fill="rgba(255,255,255,.25)"/>
         <circle cx="146" cy="80" r="7" fill="url(#nb)"/>
       </g>
-      <!-- neck -->
       <rect x="83" y="58" width="14" height="16" rx="5" fill="url(#nb)"/>
-      <!-- head -->
       <ellipse cx="90" cy="46" rx="22" ry="24" fill="url(#nb)"/>
-      <!-- hair -->
       <ellipse cx="90" cy="26" rx="22" ry="12" fill="#333"/>
-      <!-- eyes -->
       <circle cx="82" cy="45" r="3" fill="#333"/>
       <circle cx="98" cy="45" r="3" fill="#333"/>
-      <!-- headband -->
       <path d="M68 35 Q90 28 112 35" stroke="#ff4d00" stroke-width="4" fill="none" stroke-linecap="round"/>
     </svg>
   </button>
@@ -417,109 +458,72 @@
 </nav>
 
 <style>
-@keyframes bounce2 {
-  0%,100%{transform:rotate(-14deg)}
-  50%{transform:rotate(14deg)}
-}
+@keyframes bounce2 { 0%,100%{transform:rotate(-14deg)} 50%{transform:rotate(14deg)} }
 </style>
 
 <script>
-// ── STATE ──────────────────────────────────────────────
+// ═══════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════
 let chatHistory = [];
 let currentScreen = 'chat';
 let graphFilterDays = 30;
 let awaitingPlanConfirm = false;
 let pendingPlanText = null;
+let activeWeekIdx = null;
 
 const DAYS = ['Mandag','Tirsdag','Onsdag','Torsdag','Fredag','Lørdag','Søndag'];
 
-// ── UTILS ──────────────────────────────────────────────
+// ═══════════════════════════════════════════════
+// STORAGE HELPERS  (prefix: fabian_)
+// ═══════════════════════════════════════════════
+const LS = {
+  get: k => { try { return JSON.parse(localStorage.getItem('fabian_'+k)); } catch{ return null; } },
+  set: (k,v) => localStorage.setItem('fabian_'+k, JSON.stringify(v)),
+  remove: k => localStorage.removeItem('fabian_'+k)
+};
+
+// ═══════════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════════
 function apiKey() { return document.getElementById('api-key-input').value.trim(); }
-
-function ts() {
-  const n = new Date();
-  return n.getHours().toString().padStart(2,'0')+':'+n.getMinutes().toString().padStart(2,'0');
-}
-
+function ts() { const n=new Date(); return n.getHours().toString().padStart(2,'0')+':'+n.getMinutes().toString().padStart(2,'0'); }
 function todayStr() { return new Date().toISOString().slice(0,10); }
+function getMonday() { const d=new Date(); const day=d.getDay(); const diff=d.getDate()-day+(day===0?-6:1); return new Date(d.setDate(diff)).toISOString().slice(0,10); }
+function todayDayName() { return DAYS[new Date().getDay()===0?6:new Date().getDay()-1]; }
 
-function getMonday() {
-  const d = new Date(); const day = d.getDay();
-  const diff = d.getDate() - day + (day===0 ? -6 : 1);
-  return new Date(d.setDate(diff)).toISOString().slice(0,10);
-}
-
-// ── API KEY ────────────────────────────────────────────
+// ═══════════════════════════════════════════════
+// API KEY
+// ═══════════════════════════════════════════════
 const apiKeyInput = document.getElementById('api-key-input');
 const apiKeyStatus = document.getElementById('api-key-status');
-
-const savedKey = localStorage.getItem('apex_api_key');
-if (savedKey) { apiKeyInput.value = savedKey; updateKeyStatus(savedKey); }
-
-apiKeyInput.addEventListener('input', () => {
-  const v = apiKeyInput.value.trim();
-  localStorage.setItem('apex_api_key', v);
-  updateKeyStatus(v);
-});
-
+const saved = LS.get('api_key');
+if (saved) { apiKeyInput.value = saved; updateKeyStatus(saved); }
+apiKeyInput.addEventListener('input', () => { LS.set('api_key', apiKeyInput.value.trim()); updateKeyStatus(apiKeyInput.value.trim()); });
 function updateKeyStatus(v) {
   if (v.startsWith('sk-ant-') && v.length > 20) { apiKeyStatus.textContent='Klar ✓'; apiKeyStatus.className='ok'; }
   else if (v.length > 0) { apiKeyStatus.textContent='Ugyldig'; apiKeyStatus.className=''; }
   else { apiKeyStatus.textContent='Ikke satt'; apiKeyStatus.className=''; }
 }
 
-// ── NAVIGATION ─────────────────────────────────────────
+// ═══════════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════════
 function switchScreen(name) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('screen-'+name).classList.add('active');
-
   document.getElementById('nav-vekt').classList.toggle('active', name==='vekt');
   document.getElementById('nav-coach').classList.toggle('active', name==='chat');
   document.getElementById('nav-program').classList.toggle('active', name==='program');
-
   currentScreen = name;
   if (name === 'vekt') renderWeightScreen();
-  if (name === 'program') renderProgramScreen();
+  if (name === 'program') renderJourney();
 }
 
-// ══════════════════════════════════════════════════════
-// SCREEN 1 — CHAT
-// ══════════════════════════════════════════════════════
-const messagesEl = document.getElementById('messages');
-const userInput = document.getElementById('user-input');
-const sendBtn = document.getElementById('send-btn');
-
-userInput.addEventListener('input', () => {
-  userInput.style.height = 'auto';
-  userInput.style.height = Math.min(userInput.scrollHeight, 120) + 'px';
-});
-userInput.addEventListener('keydown', e => {
-  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChat(); }
-});
-sendBtn.addEventListener('click', sendChat);
-
-function addMsg(role, text) {
-  const welcome = messagesEl.querySelector('.welcome');
-  if (welcome) welcome.remove();
-  const wrap = document.createElement('div'); wrap.className = 'message '+role;
-  const bub = document.createElement('div'); bub.className = 'bubble'; bub.textContent = text;
-  const meta = document.createElement('div'); meta.className = 'meta'; meta.textContent = ts();
-  wrap.appendChild(bub); wrap.appendChild(meta);
-  messagesEl.appendChild(wrap);
-  messagesEl.scrollTop = messagesEl.scrollHeight;
-}
-
-function showTyping() {
-  const wrap = document.createElement('div'); wrap.className = 'message coach'; wrap.id = 'typing';
-  const tb = document.createElement('div'); tb.className = 'typing-bubble';
-  tb.innerHTML = '<span></span><span></span><span></span>';
-  const meta = document.createElement('div'); meta.className = 'meta'; meta.textContent = 'Coach Apex skriver...';
-  wrap.appendChild(tb); wrap.appendChild(meta); messagesEl.appendChild(wrap);
-  messagesEl.scrollTop = messagesEl.scrollHeight;
-}
-function hideTyping() { const el = document.getElementById('typing'); if (el) el.remove(); }
-
-async function callAPI(messages, system) {
+// ═══════════════════════════════════════════════
+// ANTHROPIC API CALL
+// ═══════════════════════════════════════════════
+async function callAPI(messages, system, maxTokens=2048) {
   const r = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: {
@@ -528,362 +532,473 @@ async function callAPI(messages, system) {
       'anthropic-version': '2023-06-01',
       'anthropic-dangerous-direct-browser-access': 'true'
     },
-    body: JSON.stringify({
-      model: 'claude-sonnet-4-5',
-      max_tokens: 2048,
-      system,
-      messages
-    })
+    body: JSON.stringify({ model:'claude-sonnet-4-5', max_tokens:maxTokens, system, messages })
   });
-  if (!r.ok) { const e = await r.json().catch(()=>({})); throw new Error(e.error?.message||`HTTP ${r.status}`); }
-  const d = await r.json();
-  return d.content[0].text;
+  if (!r.ok) { const e=await r.json().catch(()=>({})); throw new Error(e.error?.message||`HTTP ${r.status}`); }
+  return (await r.json()).content[0].text;
 }
 
-const YES_REPLIES = /^(ja|yes|yep|gjerne|ok|okei|sure|selvsagt|absolutt|jes|jep|gjør det|lagre|save)/i;
-const PLAN_KEYWORDS = /(treningsplan|kostholdsplan|ukeplan|program|plan for uke|treningsprogram|ukesplan)/i;
+// ═══════════════════════════════════════════════
+// SCREEN 1 – CHAT
+// ═══════════════════════════════════════════════
+const messagesEl = document.getElementById('messages');
+const userInput  = document.getElementById('user-input');
+const sendBtn    = document.getElementById('send-btn');
+const coachAvatar = document.getElementById('coach-avatar');
+
+const YES_RE  = /^(ja|yes|yep|gjerne|ok|okei|sure|selvsagt|absolutt|jes|jep|gjør det|lagre|save)/i;
+const PLAN_RE = /(treningsplan|kostholdsplan|ukeplan|program|plan for uke|treningsprogram|ukesplan)/i;
+
+userInput.addEventListener('input', () => { userInput.style.height='auto'; userInput.style.height=Math.min(userInput.scrollHeight,120)+'px'; });
+userInput.addEventListener('keydown', e => { if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendChat();} });
+sendBtn.addEventListener('click', sendChat);
+
+function addMsg(role, text) {
+  const welcome = messagesEl.querySelector('.welcome'); if(welcome) welcome.remove();
+  const wrap = document.createElement('div'); wrap.className='message '+role;
+
+  if (role === 'coach') {
+    const row = document.createElement('div'); row.className='coach-msg-row';
+    const mini = document.createElement('div'); mini.className='coach-mini-avatar';
+    mini.innerHTML=`<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <defs><linearGradient id="mg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#e8b89a"/><stop offset="100%" style="stop-color:#c8906a"/></linearGradient></defs>
+      <ellipse cx="50" cy="38" rx="20" ry="22" fill="url(#mg)"/>
+      <ellipse cx="50" cy="18" rx="20" ry="11" fill="#222"/>
+      <circle cx="43" cy="37" r="3" fill="#222"/><circle cx="57" cy="37" r="3" fill="#222"/>
+      <path d="M43 46 Q50 51 57 46" stroke="#c87050" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      <path d="M33 23 Q50 17 67 23" stroke="#ff4d00" stroke-width="3" fill="none" stroke-linecap="round" opacity=".9"/>
+    </svg>`;
+    const bub = document.createElement('div'); bub.className='bubble'; bub.textContent=text;
+    row.appendChild(mini); row.appendChild(bub); wrap.appendChild(row);
+  } else {
+    const bub = document.createElement('div'); bub.className='bubble'; bub.textContent=text;
+    wrap.appendChild(bub);
+  }
+  const meta=document.createElement('div'); meta.className='meta'; meta.textContent=ts();
+  wrap.appendChild(meta);
+  messagesEl.appendChild(wrap);
+  messagesEl.scrollTop=messagesEl.scrollHeight;
+}
+
+function showTyping() {
+  const wrap=document.createElement('div'); wrap.className='message coach'; wrap.id='typing';
+  const row=document.createElement('div'); row.className='coach-msg-row';
+  const mini=document.createElement('div'); mini.className='coach-mini-avatar';
+  mini.innerHTML='<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="rgba(255,77,0,.3)"/></svg>';
+  const tb=document.createElement('div'); tb.className='typing-bubble';
+  tb.innerHTML='<span></span><span></span><span></span>';
+  const meta=document.createElement('div'); meta.className='meta'; meta.textContent='Coach Fabian skriver...';
+  row.appendChild(mini); row.appendChild(tb); wrap.appendChild(row); wrap.appendChild(meta);
+  messagesEl.appendChild(wrap); messagesEl.scrollTop=messagesEl.scrollHeight;
+}
+function hideTyping() { const el=document.getElementById('typing'); if(el) el.remove(); }
+
+function animateAvatar() {
+  coachAvatar.classList.remove('nodding');
+  void coachAvatar.offsetWidth; // reflow
+  coachAvatar.classList.add('nodding');
+  setTimeout(() => coachAvatar.classList.remove('nodding'), 500);
+}
 
 async function sendChat() {
-  const text = userInput.value.trim();
-  if (!text) return;
-  if (!apiKey()) { apiKeyInput.focus(); return; }
+  const text = userInput.value.trim(); if(!text) return;
+  if(!apiKey()) { apiKeyInput.focus(); return; }
   addMsg('user', text);
-  userInput.value = ''; userInput.style.height = 'auto';
-  sendBtn.disabled = true;
+  userInput.value=''; userInput.style.height='auto';
+  sendBtn.disabled=true;
 
-  // Handle plan-save confirmation
   if (awaitingPlanConfirm) {
-    awaitingPlanConfirm = false;
-    if (YES_REPLIES.test(text)) {
+    awaitingPlanConfirm=false;
+    if (YES_RE.test(text)) {
       showTyping();
       await savePlanFromChat(pendingPlanText);
-      pendingPlanText = null;
-      hideTyping();
-      sendBtn.disabled = false; userInput.focus();
-      return;
+      pendingPlanText=null; hideTyping(); animateAvatar();
     } else {
-      pendingPlanText = null;
-      chatHistory.push({ role:'user', content:text });
-      addMsg('coach', 'Ingen problem! Spør meg gjerne om noe annet 💪');
-      chatHistory.push({ role:'assistant', content:'Ingen problem! Spør meg gjerne om noe annet 💪' });
-      sendBtn.disabled = false; userInput.focus();
-      return;
+      pendingPlanText=null;
+      chatHistory.push({role:'user',content:text});
+      const reply='Ingen problem! Spør meg gjerne om noe annet 💪';
+      addMsg('coach', reply); animateAvatar();
+      chatHistory.push({role:'assistant',content:reply});
     }
+    sendBtn.disabled=false; userInput.focus(); return;
   }
 
-  chatHistory.push({ role:'user', content:text });
-  showTyping();
+  chatHistory.push({role:'user',content:text}); showTyping();
   try {
-    const reply = await callAPI(chatHistory,
-      'Du er Coach Apex, en entusiastisk og motiverende AI personal trainer. Svar alltid på norsk med konkrete og praktiske treningsråd. Hold svarene konsise og motiverende.');
-    hideTyping(); addMsg('coach', reply);
-    chatHistory.push({ role:'assistant', content:reply });
-
-    // Check if the reply contains a plan — offer to save it
-    if (PLAN_KEYWORDS.test(reply) && !awaitingPlanConfirm) {
-      awaitingPlanConfirm = true;
-      pendingPlanText = reply;
+    const reply = await callAPI(chatHistory, 'Du er Coach Fabian, en entusiastisk og motiverende AI personal trainer. Svar alltid på norsk med konkrete og praktiske treningsråd. Hold svarene konsise og motiverende.');
+    hideTyping(); addMsg('coach', reply); animateAvatar();
+    chatHistory.push({role:'assistant',content:reply});
+    if (PLAN_RE.test(reply) && !awaitingPlanConfirm) {
+      awaitingPlanConfirm=true; pendingPlanText=reply;
       setTimeout(() => {
-        addMsg('coach', 'Vil du at jeg lagrer denne planen i Program-fanen din? 💪');
-        chatHistory.push({ role:'assistant', content:'Vil du at jeg lagrer denne planen i Program-fanen din? 💪' });
-      }, 600);
+        addMsg('coach','Vil du at jeg lagrer denne planen i Program-fanen din? 💪');
+        chatHistory.push({role:'assistant',content:'Vil du at jeg lagrer denne planen i Program-fanen din? 💪'});
+      }, 700);
     }
-  } catch(err) {
-    hideTyping(); addMsg('coach', '⚠️ Feil: '+err.message);
-  }
-  sendBtn.disabled = false; userInput.focus();
+  } catch(err) { hideTyping(); addMsg('coach','⚠️ Feil: '+err.message); }
+  sendBtn.disabled=false; userInput.focus();
 }
 
 async function savePlanFromChat(planText) {
   try {
-    const parsePrompt = `Konverter denne trenings- og kostholdsplanen til JSON. Svar KUN med gyldig JSON, ingen annen tekst:
-{
-  "days": [
-    {
-      "name": "Mandag",
-      "training": ["Øvelse 1 - 3x10", "Øvelse 2 - 3x12"],
-      "meals": ["Frokost: ...", "Lunsj: ...", "Middag: ...", "Snacks: ..."]
-    }
-  ]
-}
-Planen som skal konverteres:
-${planText}`;
-
-    const json = await callAPI([{role:'user',content:parsePrompt}],
-      'Du er en JSON-konverter. Svar kun med gyldig JSON, ingen forklaring eller annen tekst.');
-
-    const match = json.match(/\{[\s\S]*\}/);
-    if (!match) throw new Error('Kunne ikke parse planen');
+    const json = await callAPI([{role:'user',content:`Konverter denne trenings- og kostholdsplanen til JSON. Svar KUN med gyldig JSON, ingen annen tekst:\n{\n  "days": [\n    {\n      "name": "Mandag",\n      "training": ["Øvelse - 3x10"],\n      "meals": ["Frokost: ...", "Lunsj: ...", "Middag: ...", "Snacks: ..."]\n    }\n  ]\n}\nPlanen:\n${planText}`}],
+      'Du er en JSON-konverter. Svar kun med gyldig JSON, ingen forklaring.');
+    const match = json.match(/\{[\s\S]*\}/); if(!match) throw new Error('Parse-feil');
     const data = JSON.parse(match[0]);
-    localStorage.setItem('apex_program', JSON.stringify(data));
-    localStorage.removeItem('apex_checked');
-    localStorage.setItem('apex_week_monday', getMonday());
-    addMsg('coach', 'Planen er nå lagret i Program-fanen din ✅ Trykk på kalender-ikonet for å se den!');
-    chatHistory.push({ role:'assistant', content:'Planen er nå lagret i Program-fanen din ✅' });
-  } catch(err) {
-    addMsg('coach', '⚠️ Klarte ikke lagre planen: '+err.message);
-  }
+    addWeekToJourney(data);
+    addMsg('coach','Planen er nå lagret i Program-fanen din ✅ Trykk på kalender-ikonet for å se den!');
+    chatHistory.push({role:'assistant',content:'Planen er lagret i Program-fanen ✅'});
+  } catch(err) { addMsg('coach','⚠️ Klarte ikke lagre: '+err.message); }
 }
 
-// ══════════════════════════════════════════════════════
-// SCREEN 2 — VEKTLOGG
-// ══════════════════════════════════════════════════════
-function getWeightLog() { return JSON.parse(localStorage.getItem('apex_weights')||'[]'); }
-function saveWeightLog(log) { localStorage.setItem('apex_weights', JSON.stringify(log)); }
+// ═══════════════════════════════════════════════
+// SCREEN 2 – VEKTLOGG
+// ═══════════════════════════════════════════════
+function getWeightLog() { return LS.get('weights')||[]; }
+function saveWeightLog(l) { LS.set('weights', l); }
 
 document.getElementById('log-weight-btn').addEventListener('click', () => {
-  const val = parseFloat(document.getElementById('weight-input').value);
-  if (isNaN(val) || val < 30 || val > 300) return;
-  const log = getWeightLog();
-  const today = todayStr();
-  const idx = log.findIndex(e => e.d === today);
-  if (idx >= 0) log[idx].w = val; else log.push({ d:today, w:val });
-  log.sort((a,b) => a.d.localeCompare(b.d));
+  const val=parseFloat(document.getElementById('weight-input').value);
+  if(isNaN(val)||val<30||val>300) return;
+  const log=getWeightLog(); const today=todayStr();
+  const idx=log.findIndex(e=>e.d===today);
+  if(idx>=0) log[idx].w=val; else log.push({d:today,w:val});
+  log.sort((a,b)=>a.d.localeCompare(b.d));
   saveWeightLog(log); renderWeightScreen();
-  document.getElementById('weight-input').value = '';
+  document.getElementById('weight-input').value='';
 });
 
 function setGraphFilter(days) {
-  graphFilterDays = days;
-  document.querySelectorAll('.graph-filter-btn').forEach(btn => {
-    btn.classList.toggle('active', parseInt(btn.dataset.days) === days);
-  });
-  const log = getWeightLog();
-  const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - days);
-  drawGraph(log.filter(e => new Date(e.d) >= cutoff));
+  graphFilterDays=days;
+  document.querySelectorAll('.graph-filter-btn').forEach(b=>b.classList.toggle('active',parseInt(b.dataset.days)===days));
+  const log=getWeightLog(); const cutoff=new Date(); cutoff.setDate(cutoff.getDate()-days);
+  drawGraph(log.filter(e=>new Date(e.d)>=cutoff));
 }
 
 function renderWeightScreen() {
-  const log = getWeightLog();
-  const statStart = document.getElementById('stat-start');
-  const statNow = document.getElementById('stat-now');
-  const statDiff = document.getElementById('stat-diff');
-
-  if (log.length === 0) {
-    statStart.textContent = '–'; statNow.textContent = '–'; statDiff.textContent = '–';
-    document.getElementById('log-list').innerHTML = '<div style="color:var(--text3);text-align:center;padding:20px;font-size:13px">Ingen målinger ennå. Logg din første vekt!</div>';
-    drawGraph([]);
-    return;
+  const log=getWeightLog();
+  const sStart=document.getElementById('stat-start'), sNow=document.getElementById('stat-now'), sDiff=document.getElementById('stat-diff');
+  if(!log.length) {
+    sStart.textContent='–'; sNow.textContent='–'; sDiff.textContent='–';
+    document.getElementById('log-list').innerHTML='<div style="color:var(--text3);text-align:center;padding:20px;font-size:13px">Ingen målinger ennå.</div>';
+    drawGraph([]); renderPhotoSection(); return;
   }
+  const first=log[0].w, last=log[log.length-1].w, diff=+(last-first).toFixed(1);
+  sStart.textContent=first+'kg'; sNow.textContent=last+'kg';
+  sDiff.textContent=(diff>0?'+':'')+diff+'kg';
+  sDiff.parentElement.querySelector('.val').style.color=diff>0?'#ff5252':(diff<0?'var(--green)':'var(--orange)');
 
-  const first = log[0].w; const last = log[log.length-1].w;
-  const diff = +(last - first).toFixed(1);
-  statStart.textContent = first+'kg';
-  statNow.textContent = last+'kg';
-  statDiff.textContent = (diff>0?'+':'')+diff+'kg';
-  statDiff.parentElement.style.color = diff > 0 ? '#ff5252' : (diff < 0 ? 'var(--green)' : 'var(--orange)');
+  const cutoff=new Date(); cutoff.setDate(cutoff.getDate()-graphFilterDays);
+  drawGraph(log.filter(e=>new Date(e.d)>=cutoff));
+  document.querySelectorAll('.graph-filter-btn').forEach(b=>b.classList.toggle('active',parseInt(b.dataset.days)===graphFilterDays));
 
-  // Graph filtered by current selection
-  const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - graphFilterDays);
-  drawGraph(log.filter(e => new Date(e.d) >= cutoff));
-
-  // Sync filter buttons visual state
-  document.querySelectorAll('.graph-filter-btn').forEach(btn => {
-    btn.classList.toggle('active', parseInt(btn.dataset.days) === graphFilterDays);
-  });
-
-  // List (last 30, newest first)
-  const listEl = document.getElementById('log-list');
-  const shown = [...log].reverse().slice(0,30);
-  listEl.innerHTML = '';
-  shown.forEach((e,i) => {
-    const prev = shown[i+1];
-    const div = document.createElement('div'); div.className = 'log-item';
-    const diff2 = prev ? +(e.w - prev.w).toFixed(1) : null;
-    const diffHtml = diff2 !== null
-      ? `<span class="log-diff ${diff2>0?'up':'down'}">${diff2>0?'+':''}${diff2}kg</span>`
-      : '';
-    div.innerHTML = `<span class="log-date">${e.d}</span><span class="log-val">${e.w} kg</span>${diffHtml}`;
+  const listEl=document.getElementById('log-list'); const shown=[...log].reverse().slice(0,30);
+  listEl.innerHTML='';
+  shown.forEach((e,i)=>{
+    const prev=shown[i+1]; const div=document.createElement('div'); div.className='log-item';
+    const diff2=prev?+(e.w-prev.w).toFixed(1):null;
+    div.innerHTML=`<span class="log-date">${e.d}</span><span class="log-val">${e.w} kg</span>`+(diff2!==null?`<span class="log-diff ${diff2>0?'up':'down'}">${diff2>0?'+':''}${diff2}kg</span>`:'');
     listEl.appendChild(div);
   });
+  renderPhotoSection();
 }
 
 function drawGraph(data) {
-  const svg = document.getElementById('weight-graph');
-  svg.innerHTML = '';
-  if (data.length < 2) {
-    svg.innerHTML = '<text x="180" y="90" text-anchor="middle" fill="#444" font-size="13">Ikke nok data</text>';
-    return;
+  const svg=document.getElementById('weight-graph'); svg.innerHTML='';
+  if(data.length<2){svg.innerHTML='<text x="180" y="80" text-anchor="middle" fill="#444" font-size="13">Ikke nok data</text>';return;}
+  const W=360,H=160,PAD=22;
+  const weights=data.map(e=>e.w); const minW=Math.min(...weights),maxW=Math.max(...weights),range=maxW-minW||1;
+  const px=i=>PAD+(i/(data.length-1))*(W-PAD*2);
+  const py=w=>H-PAD-((w-minW)/range)*(H-PAD*2);
+  for(let i=0;i<4;i++){
+    const y=PAD+i*(H-PAD*2)/3;
+    const ln=document.createElementNS('http://www.w3.org/2000/svg','line');
+    ln.setAttribute('x1',PAD);ln.setAttribute('x2',W-PAD);ln.setAttribute('y1',y);ln.setAttribute('y2',y);ln.setAttribute('stroke','#2a2a38');ln.setAttribute('stroke-width','1');svg.appendChild(ln);
+    const tx=document.createElementNS('http://www.w3.org/2000/svg','text');
+    tx.setAttribute('x',2);tx.setAttribute('y',y+4);tx.setAttribute('fill','#555');tx.setAttribute('font-size','9');tx.textContent=(maxW-i*(range/3)).toFixed(1);svg.appendChild(tx);
   }
-  const W=360, H=180, PAD=20;
-  const weights = data.map(e=>e.w);
-  const minW = Math.min(...weights), maxW = Math.max(...weights);
-  const range = maxW - minW || 1;
-
-  const px = (i) => PAD + (i/(data.length-1))*(W-PAD*2);
-  const py = (w) => H-PAD - ((w-minW)/range)*(H-PAD*2);
-
-  // grid lines
-  for (let i=0;i<4;i++) {
-    const y = PAD + i*(H-PAD*2)/3;
-    const line = document.createElementNS('http://www.w3.org/2000/svg','line');
-    line.setAttribute('x1',PAD); line.setAttribute('x2',W-PAD);
-    line.setAttribute('y1',y); line.setAttribute('y2',y);
-    line.setAttribute('stroke','#2a2a38'); line.setAttribute('stroke-width','1');
-    svg.appendChild(line);
-    const wVal = maxW - i*(range/3);
-    const txt = document.createElementNS('http://www.w3.org/2000/svg','text');
-    txt.setAttribute('x',2); txt.setAttribute('y',y+4);
-    txt.setAttribute('fill','#555'); txt.setAttribute('font-size','9');
-    txt.textContent = wVal.toFixed(1);
-    svg.appendChild(txt);
-  }
-
-  // gradient fill
-  const defs = document.createElementNS('http://www.w3.org/2000/svg','defs');
-  const grad = document.createElementNS('http://www.w3.org/2000/svg','linearGradient');
-  grad.setAttribute('id','wg'); grad.setAttribute('x1','0'); grad.setAttribute('x2','0'); grad.setAttribute('y1','0'); grad.setAttribute('y2','1');
-  grad.innerHTML = '<stop offset="0%" stop-color="#ff4d00" stop-opacity="0.3"/><stop offset="100%" stop-color="#ff4d00" stop-opacity="0"/>';
-  defs.appendChild(grad); svg.appendChild(defs);
-
-  let pathD = `M${px(0)} ${py(data[0].w)}`;
-  for (let i=1;i<data.length;i++) pathD += ` L${px(i)} ${py(data[i].w)}`;
-  const fillD = pathD + ` L${px(data.length-1)} ${H-PAD} L${px(0)} ${H-PAD} Z`;
-
-  const fill = document.createElementNS('http://www.w3.org/2000/svg','path');
-  fill.setAttribute('d',fillD); fill.setAttribute('fill','url(#wg)'); svg.appendChild(fill);
-
-  const line2 = document.createElementNS('http://www.w3.org/2000/svg','path');
-  line2.setAttribute('d',pathD); line2.setAttribute('fill','none');
-  line2.setAttribute('stroke','#ff4d00'); line2.setAttribute('stroke-width','2.5');
-  line2.setAttribute('stroke-linecap','round'); line2.setAttribute('stroke-linejoin','round');
-  svg.appendChild(line2);
-
-  // last point dot
-  const lastX = px(data.length-1), lastY = py(data[data.length-1].w);
-  const dot = document.createElementNS('http://www.w3.org/2000/svg','circle');
-  dot.setAttribute('cx',lastX); dot.setAttribute('cy',lastY); dot.setAttribute('r','5');
-  dot.setAttribute('fill','#ff4d00'); dot.setAttribute('stroke','#0d0d0f'); dot.setAttribute('stroke-width','2');
-  svg.appendChild(dot);
+  const defs=document.createElementNS('http://www.w3.org/2000/svg','defs');
+  const grad=document.createElementNS('http://www.w3.org/2000/svg','linearGradient');
+  grad.setAttribute('id','wg');grad.setAttribute('x1','0');grad.setAttribute('x2','0');grad.setAttribute('y1','0');grad.setAttribute('y2','1');
+  grad.innerHTML='<stop offset="0%" stop-color="#ff4d00" stop-opacity="0.3"/><stop offset="100%" stop-color="#ff4d00" stop-opacity="0"/>';
+  defs.appendChild(grad);svg.appendChild(defs);
+  let pd=`M${px(0)} ${py(data[0].w)}`;
+  for(let i=1;i<data.length;i++) pd+=` L${px(i)} ${py(data[i].w)}`;
+  const fill=document.createElementNS('http://www.w3.org/2000/svg','path');
+  fill.setAttribute('d',pd+` L${px(data.length-1)} ${H-PAD} L${px(0)} ${H-PAD} Z`);fill.setAttribute('fill','url(#wg)');svg.appendChild(fill);
+  const ln2=document.createElementNS('http://www.w3.org/2000/svg','path');
+  ln2.setAttribute('d',pd);ln2.setAttribute('fill','none');ln2.setAttribute('stroke','#ff4d00');ln2.setAttribute('stroke-width','2.5');ln2.setAttribute('stroke-linecap','round');ln2.setAttribute('stroke-linejoin','round');svg.appendChild(ln2);
+  const dot=document.createElementNS('http://www.w3.org/2000/svg','circle');
+  dot.setAttribute('cx',px(data.length-1));dot.setAttribute('cy',py(data[data.length-1].w));dot.setAttribute('r','5');dot.setAttribute('fill','#ff4d00');dot.setAttribute('stroke','#0d0d0f');dot.setAttribute('stroke-width','2');svg.appendChild(dot);
 }
 
-// ══════════════════════════════════════════════════════
-// SCREEN 3 — PROGRAM
-// ══════════════════════════════════════════════════════
-function getProgramData() {
-  const raw = localStorage.getItem('apex_program');
-  return raw ? JSON.parse(raw) : null;
-}
-function getChecked() { return JSON.parse(localStorage.getItem('apex_checked')||'{}'); }
-function saveChecked(c) { localStorage.setItem('apex_checked', JSON.stringify(c)); }
-
-// Auto-reset checked on new week
-function checkWeekReset() {
-  const storedMonday = localStorage.getItem('apex_week_monday');
-  const thisMonday = getMonday();
-  if (storedMonday !== thisMonday) {
-    localStorage.setItem('apex_week_monday', thisMonday);
-    localStorage.removeItem('apex_checked');
-  }
+// ─── PHOTOS ────────────────────────────────────
+function photoKey(date) { return 'img_'+date; }
+function getPhotoDates() {
+  return Object.keys(localStorage).filter(k=>k.startsWith('fabian_img_')).map(k=>k.replace('fabian_img_','')).sort().reverse();
 }
 
-document.getElementById('gen-program-btn').addEventListener('click', generateProgram);
+document.getElementById('photo-file-input').addEventListener('change', e => {
+  const file=e.target.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    localStorage.setItem('fabian_img_'+todayStr(), ev.target.result);
+    renderPhotoSection();
+  };
+  reader.readAsDataURL(file);
+  e.target.value='';
+});
 
-async function generateProgram() {
-  if (!apiKey()) { apiKeyInput.focus(); return; }
-  const btn = document.getElementById('gen-program-btn');
-  btn.disabled = true; btn.textContent = 'Genererer...';
-  document.getElementById('program-content').innerHTML = '<div class="program-loading">Coach Apex lager din ukeplan... ⏳</div>';
+function renderPhotoSection() {
+  const dates=getPhotoDates();
+  const today=todayStr();
+  const todayImg=localStorage.getItem('fabian_img_'+today);
+  const prevEl=document.getElementById('photo-today-preview');
+  if(todayImg){
+    document.getElementById('photo-today-img').src=todayImg;
+    document.getElementById('photo-today-date').textContent='Lagret i dag: '+today;
+    prevEl.style.display='block';
+  } else { prevEl.style.display='none'; }
 
-  const prompt = `Lag en detaljert ukentlig trenings- og kostholdsplan for mandag til søndag.
-Svar KUN med gyldig JSON på dette formatet (ingen tekst utenfor JSON):
-{
-  "days": [
-    {
-      "name": "Mandag",
-      "training": ["Øvelse 1", "Øvelse 2", "Øvelse 3"],
-      "meals": ["Frokost: ...", "Lunsj: ...", "Middag: ...", "Snacks: ..."]
-    }
-  ]
-}
-Gjør planen variert, realistisk og motiverende. Treningsøktene skal inneholde 3-5 konkrete øvelser med sett/reps. Kostholdet skal være næringsrikt.`;
+  // Grid (all past, excluding today)
+  const grid=document.getElementById('photo-grid'); grid.innerHTML='';
+  dates.filter(d=>d!==today).forEach(d=>{
+    const img=localStorage.getItem('fabian_img_'+d); if(!img) return;
+    const div=document.createElement('div'); div.className='photo-thumb';
+    div.innerHTML=`<img src="${img}" alt="${d}"><div class="photo-thumb-date">${d}</div>`;
+    div.onclick=()=>openPhotoModal(d,img);
+    grid.appendChild(div);
+  });
 
-  try {
-    const reply = await callAPI([{role:'user',content:prompt}],
-      'Du er Coach Apex, en profesjonell AI personal trainer. Du svarer alltid på norsk og lager strukturerte trenings- og kostholdsplaner.');
-
-    const jsonMatch = reply.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) throw new Error('Ugyldig svar fra API');
-    const data = JSON.parse(jsonMatch[0]);
-    localStorage.setItem('apex_program', JSON.stringify(data));
-    localStorage.removeItem('apex_checked');
-    localStorage.setItem('apex_week_monday', getMonday());
-    renderProgramScreen();
-  } catch(err) {
-    document.getElementById('program-content').innerHTML =
-      `<div class="program-empty"><strong>Feil</strong>${err.message}</div>`;
-  }
-  btn.disabled = false; btn.textContent = 'Generer nytt';
-}
-
-function renderProgramScreen() {
-  checkWeekReset();
-  const data = getProgramData();
-  const content = document.getElementById('program-content');
-
-  if (!data || !data.days) {
-    content.innerHTML = `<div class="program-empty"><strong>Ingen plan ennå</strong>Trykk «Generer nytt» for å lage<br>din personlige uke-plan med Coach Apex.</div>`;
-    return;
-  }
-
-  const checked = getChecked();
-  const todayName = DAYS[new Date().getDay()===0?6:new Date().getDay()-1];
-
-  content.innerHTML = '';
-  data.days.forEach((day, di) => {
-    const allTasks = [...(day.training||[]).map((t,i)=>({type:'t',i,text:t})),
-                      ...(day.meals||[]).map((m,i)=>({type:'m',i,text:m}))];
-    const doneCount = allTasks.filter(t=>checked[`${di}_${t.type}_${t.i}`]).length;
-
-    const card = document.createElement('div'); card.className = 'day-card';
-    const isToday = day.name === todayName;
-
-    card.innerHTML = `
-      <div class="day-header" onclick="toggleDay(${di})">
-        <span class="day-name${isToday?' today':''}">${day.name}${isToday?' 📍':''}</span>
-        <span class="day-progress">${doneCount}/${allTasks.length} gjort</span>
-      </div>
-      <div class="day-body${isToday?' open':''}" id="day-body-${di}">
-        <div class="day-section-title">🏋️ Treningsøkt</div>
-        ${(day.training||[]).map((t,i) => taskHTML(di,'t',i,t,checked)).join('')}
-        <div class="day-section-title">🥗 Kosthold</div>
-        ${(day.meals||[]).map((m,i) => taskHTML(di,'m',i,m,checked)).join('')}
-      </div>`;
-    content.appendChild(card);
+  // Populate compare dropdowns
+  const allDates=getPhotoDates();
+  const selA=document.getElementById('compare-a'), selB=document.getElementById('compare-b');
+  [selA,selB].forEach(sel=>{
+    const cur=sel.value; sel.innerHTML='<option value="">Velg dato</option>';
+    allDates.forEach(d=>{ const o=document.createElement('option'); o.value=d; o.textContent=d; if(d===cur) o.selected=true; sel.appendChild(o); });
   });
 }
 
-function taskHTML(di, type, i, text, checked) {
-  const key = `${di}_${type}_${i}`;
-  const done = !!checked[key];
+document.getElementById('compare-btn').addEventListener('click', ()=>{
+  const dA=document.getElementById('compare-a').value, dB=document.getElementById('compare-b').value;
+  if(!dA||!dB) return;
+  const imgA=localStorage.getItem('fabian_img_'+dA), imgB=localStorage.getItem('fabian_img_'+dB);
+  if(!imgA||!imgB) return;
+  const log=getWeightLog();
+  const findW=d=>{ const e=log.find(x=>x.d===d); return e?e.w+'kg':'–'; };
+  const result=document.getElementById('compare-result');
+  document.querySelector('#compare-photo-a img').src=imgA;
+  document.getElementById('compare-label-a').textContent=dA;
+  document.getElementById('compare-weight-a').textContent=findW(dA);
+  document.querySelector('#compare-photo-b img').src=imgB;
+  document.getElementById('compare-label-b').textContent=dB;
+  document.getElementById('compare-weight-b').textContent=findW(dB);
+  result.classList.add('show');
+});
+
+function openPhotoModal(date, src) {
+  const overlay=document.createElement('div');
+  overlay.style.cssText='position:fixed;inset:0;z-index:999;background:rgba(0,0,0,.92);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:20px';
+  const img=document.createElement('img');
+  img.src=src; img.style.cssText='max-width:100%;max-height:80vh;border-radius:12px;object-fit:contain';
+  const lbl=document.createElement('div');
+  lbl.style.cssText='color:#888;font-size:13px'; lbl.textContent=date;
+  overlay.appendChild(img); overlay.appendChild(lbl);
+  overlay.onclick=()=>document.body.removeChild(overlay);
+  document.body.appendChild(overlay);
+}
+
+// ═══════════════════════════════════════════════
+// SCREEN 3 – PROGRAM / JOURNEY
+// ═══════════════════════════════════════════════
+function getJourney() { return LS.get('journey')||[]; }
+function saveJourney(j) { LS.set('journey',j); }
+function getCheckedForWeek(wn) { return LS.get('checked_'+wn)||{}; }
+function saveCheckedForWeek(wn,c) { LS.set('checked_'+wn,c); }
+
+function checkWeekReset() {
+  const stored=LS.get('week_monday'), thisMonday=getMonday();
+  if(stored!==thisMonday) { LS.set('week_monday',thisMonday); }
+}
+
+function addWeekToJourney(data) {
+  const journey=getJourney();
+  const weekNum=journey.length+1;
+  journey.push({weekNum, createdAt:todayStr(), days:data.days||[]});
+  saveJourney(journey);
+  activeWeekIdx=journey.length-1;
+  if(currentScreen==='program') renderJourney();
+}
+
+document.getElementById('gen-week-btn').addEventListener('click', generateWeek);
+
+async function generateWeek() {
+  if(!apiKey()) { apiKeyInput.focus(); return; }
+  const btn=document.getElementById('gen-week-btn');
+  btn.disabled=true; btn.textContent='Genererer...';
+  document.getElementById('week-expand-panel').innerHTML='<div class="program-loading">Coach Fabian lager uke '+(getJourney().length+1)+'... ⏳</div>';
+
+  const prompt=`Lag en detaljert ukentlig trenings- og kostholdsplan for mandag til søndag.
+Svar KUN med gyldig JSON (ingen tekst utenfor JSON):
+{"days":[{"name":"Mandag","training":["Øvelse 1 - 3x10","Øvelse 2 - 3x12"],"meals":["Frokost: ...","Lunsj: ...","Middag: ...","Snacks: ..."]}]}
+Gjør planen variert, realistisk og motiverende. 3–5 øvelser med sett/reps per dag. Næringsrikt kosthold.`;
+
+  try {
+    const reply=await callAPI([{role:'user',content:prompt}],
+      'Du er Coach Fabian, en profesjonell AI personal trainer. Du svarer alltid på norsk og lager strukturerte trenings- og kostholdsplaner.');
+    const match=reply.match(/\{[\s\S]*\}/); if(!match) throw new Error('Ugyldig JSON');
+    addWeekToJourney(JSON.parse(match[0]));
+    document.getElementById('week-expand-panel').innerHTML='';
+  } catch(err) {
+    document.getElementById('week-expand-panel').innerHTML=`<div class="program-empty"><strong>Feil</strong>${err.message}</div>`;
+  }
+  btn.disabled=false; btn.textContent='+ Ny uke';
+}
+
+function weekCompletionPct(weekNum, days) {
+  const checked=getCheckedForWeek(weekNum);
+  let total=0,done=0;
+  (days||[]).forEach((day,di)=>{
+    (day.training||[]).forEach((_,i)=>{ total++; if(checked[`${di}_t_${i}`]) done++; });
+    (day.meals||[]).forEach((_,i)=>{ total++; if(checked[`${di}_m_${i}`]) done++; });
+  });
+  return total===0?0:Math.round((done/total)*100);
+}
+
+function renderJourney() {
+  checkWeekReset();
+  const journey=getJourney();
+  const mapEl=document.getElementById('journey-map');
+  const panelEl=document.getElementById('week-expand-panel');
+  mapEl.innerHTML='';
+
+  if(!journey.length) {
+    mapEl.innerHTML='<div class="program-empty"><strong>Start reisen!</strong>Trykk «+ Ny uke» for å generere<br>din første treningsuke med Coach Fabian.</div>';
+    panelEl.innerHTML=''; return;
+  }
+
+  if(activeWeekIdx===null) activeWeekIdx=journey.length-1;
+
+  journey.forEach((week,idx)=>{
+    const pct=weekCompletionPct(week.weekNum, week.days);
+    const isDone=pct===100;
+    const isActive=idx===activeWeekIdx;
+
+    const step=document.createElement('div'); step.className='journey-step';
+
+    // connector from previous
+    if(idx>0){
+      const conn=document.createElement('div');
+      conn.className='journey-connector'+(journey[idx-1]&&weekCompletionPct(journey[idx-1].weekNum,journey[idx-1].days)===100?' done':(idx-1===activeWeekIdx?' active':''));
+      step.appendChild(conn);
+    }
+
+    const node=document.createElement('div'); node.className='journey-node';
+    const circle=document.createElement('div');
+    circle.className='journey-circle'+(isDone?' done':isActive?' active':'');
+
+    if(isDone){
+      circle.innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
+    } else {
+      circle.innerHTML=`<span style="font-size:10px;font-weight:800;text-align:center;line-height:1.2">Uke<br>${week.weekNum}</span>`;
+    }
+
+    if(isActive){
+      circle.style.animation='activeGlow 2s ease-in-out infinite';
+    }
+
+    const info=document.createElement('div'); info.className='journey-info';
+    const lbl=document.createElement('div'); lbl.className='journey-week-label'+(isDone?' done':isActive?' active':'');
+    lbl.textContent=`Uke ${week.weekNum}`+(week.createdAt?' · '+week.createdAt:'');
+    const bar=document.createElement('div'); bar.className='journey-progress-bar';
+    const fill=document.createElement('div'); fill.className='journey-progress-fill'+(isDone?' done':'');
+    fill.style.width=pct+'%'; bar.appendChild(fill);
+    const txt=document.createElement('div'); txt.className='journey-progress-text'; txt.textContent=pct+'% fullført';
+    info.appendChild(lbl); info.appendChild(bar); info.appendChild(txt);
+    node.appendChild(circle); node.appendChild(info);
+
+    node.onclick=()=>{ activeWeekIdx=idx; renderJourney(); renderWeekPanel(week); };
+    step.appendChild(node);
+    mapEl.appendChild(step);
+  });
+
+  // Render active week panel
+  if(activeWeekIdx!==null && journey[activeWeekIdx]) {
+    renderWeekPanel(journey[activeWeekIdx]);
+  }
+}
+
+function renderWeekPanel(week) {
+  const panelEl=document.getElementById('week-expand-panel');
+  const checked=getCheckedForWeek(week.weekNum);
+  const todayName=todayDayName();
+  panelEl.innerHTML='';
+  const panel=document.createElement('div'); panel.className='week-panel open';
+
+  (week.days||[]).forEach((day,di)=>{
+    const allTasks=[...(day.training||[]).map((t,i)=>({type:'t',i,text:t})),...(day.meals||[]).map((m,i)=>({type:'m',i,text:m}))];
+    const doneCount=allTasks.filter(t=>checked[`${di}_${t.type}_${t.i}`]).length;
+    const isToday=day.name===todayName;
+    const card=document.createElement('div'); card.className='day-card';
+    card.innerHTML=`<div class="day-header" onclick="toggleDay(${di},${week.weekNum})">
+      <span class="day-name${isToday?' today':''}">${day.name}${isToday?' 📍':''}</span>
+      <span class="day-progress-text">${doneCount}/${allTasks.length} gjort</span>
+    </div>
+    <div class="day-body${isToday?' open':''}" id="day-body-${week.weekNum}-${di}">
+      <div class="day-section-title">🏋️ Treningsøkt</div>
+      ${(day.training||[]).map((t,i)=>taskHTML(week.weekNum,di,'t',i,t,checked)).join('')}
+      <div class="day-section-title">🥗 Kosthold</div>
+      ${(day.meals||[]).map((m,i)=>taskHTML(week.weekNum,di,'m',i,m,checked)).join('')}
+    </div>`;
+    panel.appendChild(card);
+  });
+  panelEl.appendChild(panel);
+  panelEl.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function taskHTML(weekNum,di,type,i,text,checked){
+  const key=`${di}_${type}_${i}`; const done=!!checked[key];
   return `<div class="task-item">
-    <span class="task-text${done?' done':''}" id="tt-${key}">${text}</span>
-    <button class="done-btn${done?' checked':''}" id="db-${key}" onclick="toggleTask('${key}')">
+    <span class="task-text${done?' done':''}" id="tt-${weekNum}-${key}">${text}</span>
+    <button class="done-btn${done?' checked':''}" id="db-${weekNum}-${key}" onclick="toggleTask(${weekNum},'${key}')">
       <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
     </button>
   </div>`;
 }
 
-function toggleDay(di) {
-  const body = document.getElementById('day-body-'+di);
-  body.classList.toggle('open');
+function toggleDay(di, weekNum) {
+  const body=document.getElementById(`day-body-${weekNum}-${di}`);
+  if(body) body.classList.toggle('open');
 }
 
-function toggleTask(key) {
-  const checked = getChecked();
-  checked[key] = !checked[key];
-  saveChecked(checked);
-  const btn = document.getElementById('db-'+key);
-  const txt = document.getElementById('tt-'+key);
-  if (btn) btn.classList.toggle('checked', checked[key]);
-  if (txt) txt.classList.toggle('done', checked[key]);
-  // update progress counts
-  renderProgramScreen();
+function toggleTask(weekNum, key) {
+  const checked=getCheckedForWeek(weekNum);
+  checked[key]=!checked[key];
+  saveCheckedForWeek(weekNum,checked);
+  const btn=document.getElementById(`db-${weekNum}-${key}`), txt=document.getElementById(`tt-${weekNum}-${key}`);
+  if(btn) btn.classList.toggle('checked',checked[key]);
+  if(txt) txt.classList.toggle('done',checked[key]);
+  // refresh progress in map
+  const journey=getJourney(); const week=journey.find(w=>w.weekNum===weekNum);
+  if(week){
+    const pct=weekCompletionPct(weekNum,week.days);
+    document.querySelectorAll('.journey-progress-fill').forEach((el,idx)=>{ if(journey[idx]&&journey[idx].weekNum===weekNum){ el.style.width=pct+'%'; } });
+    document.querySelectorAll('.journey-progress-text').forEach((el,idx)=>{ if(journey[idx]&&journey[idx].weekNum===weekNum){ el.textContent=pct+'% fullført'; } });
+  }
 }
 
-// ── INIT ──────────────────────────────────────────────
+// ═══════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════
 checkWeekReset();
 renderWeightScreen();
 </script>
+
+<style>
+@keyframes activeGlow {
+  0%,100%{box-shadow:0 0 14px rgba(255,77,0,.4)}
+  50%{box-shadow:0 0 28px rgba(255,77,0,.75)}
+}
+</style>
 </body>
 </html>
