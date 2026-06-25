@@ -20,28 +20,14 @@
     --green:   #10b981;
     --red:     #ef4444;
     --nav-h:   72px;
-    --api-h:   48px;
     --shadow:  0 2px 12px rgba(37,99,235,.08);
     --shadow2: 0 4px 20px rgba(37,99,235,.13);
   }
 
   html, body { height:100%; width:100%; background:var(--bg); color:var(--text); font-family:'Segoe UI',system-ui,sans-serif; overflow:hidden; }
 
-  /* ── API BAR ── */
-  #api-bar {
-    position:fixed; top:0; left:0; right:0; z-index:100;
-    background:var(--bg2); border-bottom:1px solid #e8ecf4;
-    padding:8px 16px; display:flex; align-items:center; gap:10px; height:var(--api-h);
-    box-shadow:0 1px 6px rgba(37,99,235,.07);
-  }
-  #api-bar label { font-size:11px; color:var(--text2); white-space:nowrap; font-weight:700; text-transform:uppercase; letter-spacing:.05em; }
-  #api-key-input { flex:1; background:var(--bg3); border:1.5px solid #dde3f0; border-radius:8px; color:var(--text); padding:6px 10px; font-size:13px; font-family:monospace; outline:none; transition:border-color .2s; }
-  #api-key-input:focus { border-color:var(--blue); }
-  #api-key-status { font-size:11px; color:var(--blue2); white-space:nowrap; font-weight:600; }
-  #api-key-status.ok { color:var(--green); }
-
   /* ── LAYOUT ── */
-  #app { position:fixed; top:var(--api-h); left:0; right:0; bottom:var(--nav-h); overflow:hidden; }
+  #app { position:fixed; top:0; left:0; right:0; bottom:var(--nav-h); overflow:hidden; }
   .screen { position:absolute; inset:0; overflow-y:auto; overflow-x:hidden; opacity:0; pointer-events:none; transform:translateY(10px); transition:opacity .22s ease,transform .22s ease; -webkit-overflow-scrolling:touch; background:var(--bg); }
   .screen.active { opacity:1; pointer-events:all; transform:translateY(0); }
   .screen::-webkit-scrollbar { width:4px; }
@@ -306,12 +292,6 @@
 </style>
 </head>
 <body>
-
-<div id="api-bar">
-  <label>API-nøkkel</label>
-  <input type="password" id="api-key-input" placeholder="sk-ant-..." autocomplete="off">
-  <span id="api-key-status">Ikke satt</span>
-</div>
 
 <div id="app">
 
@@ -635,25 +615,10 @@ const LS = {
 };
 
 // ─── Utils ───
-function apiKey()      { return document.getElementById('api-key-input').value.trim(); }
 function ts()          { const n=new Date(); return n.getHours().toString().padStart(2,'0')+':'+n.getMinutes().toString().padStart(2,'0'); }
 function todayStr()    { return new Date().toISOString().slice(0,10); }
 function getMonday()   { const d=new Date(),day=d.getDay(),diff=d.getDate()-day+(day===0?-6:1); return new Date(d.setDate(diff)).toISOString().slice(0,10); }
 function todayDayName(){ return DAYS[new Date().getDay()===0?6:new Date().getDay()-1]; }
-
-// ═══════════════════════════════════════════════
-// API KEY
-// ═══════════════════════════════════════════════
-const apiKeyInput  = document.getElementById('api-key-input');
-const apiKeyStatus = document.getElementById('api-key-status');
-const savedKey = LS.get('api_key');
-if (savedKey) { apiKeyInput.value=savedKey; updateKeyStatus(savedKey); }
-apiKeyInput.addEventListener('input', () => { LS.set('api_key',apiKeyInput.value.trim()); updateKeyStatus(apiKeyInput.value.trim()); });
-function updateKeyStatus(v) {
-  if (v.startsWith('sk-ant-')&&v.length>20) { apiKeyStatus.textContent='Klar ✓'; apiKeyStatus.className='ok'; }
-  else if (v.length>0) { apiKeyStatus.textContent='Ugyldig'; apiKeyStatus.className=''; }
-  else { apiKeyStatus.textContent='Ikke satt'; apiKeyStatus.className=''; }
-}
 
 // ═══════════════════════════════════════════════
 // NAVIGATION
@@ -675,12 +640,12 @@ function switchScreen(name) {
 // API CALL
 // ═══════════════════════════════════════════════
 async function callAPI(messages, system, maxTokens=2048) {
-  const r = await fetch('https://api.anthropic.com/v1/messages', {
+  const r = await fetch('/api/chat', {
     method:'POST',
-    headers:{ 'Content-Type':'application/json', 'x-api-key':apiKey(), 'anthropic-version':'2023-06-01', 'anthropic-dangerous-direct-browser-access':'true' },
-    body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:maxTokens,system,messages})
+    headers:{ 'Content-Type':'application/json' },
+    body:JSON.stringify({ messages, system, max_tokens:maxTokens })
   });
-  if(!r.ok){const e=await r.json().catch(()=>({}));throw new Error(e.error?.message||`HTTP ${r.status}`);}
+  if(!r.ok){const e=await r.json().catch(()=>({}));throw new Error(e.error||`HTTP ${r.status}`);}
   return (await r.json()).content[0].text;
 }
 
@@ -740,7 +705,6 @@ function animateAvatar() { coachAvatar.classList.remove('nodding'); void coachAv
 
 async function sendChat() {
   const text=userInput.value.trim(); if(!text) return;
-  if(!apiKey()){apiKeyInput.focus();return;}
   addMsg('user',text); userInput.value=''; userInput.style.height='auto'; sendBtn.disabled=true;
 
   if(awaitingPlanConfirm){
@@ -925,7 +889,6 @@ function addWeekToJourney(data){
 document.getElementById('gen-week-btn').addEventListener('click', generateWeek);
 
 async function generateWeek(){
-  if(!apiKey()){apiKeyInput.focus();return;}
   const btn=document.getElementById('gen-week-btn'); btn.disabled=true; btn.textContent='Genererer...';
   document.getElementById('week-expand-panel').innerHTML='<div class="program-loading">Coach Fabian lager uke '+(getJourney().length+1)+'... ⏳</div>';
   try {
@@ -1196,7 +1159,7 @@ document.getElementById('log-sleep-btn').addEventListener('click',()=>{
   const mins=calcSleepMins(bed,wake);
   saveSleep(todayStr(),bed,wake,mins);
   renderSleepScreen();
-  if(mins<360 && apiKey()){
+  if(mins<360){
     setTimeout(()=>{
       addMsg('coach','Jeg ser du sov lite i natt 😴 Husk at søvn er like viktig som trening for fremgang — prøv å prioriter 7–8 timer i natt!');
       animateAvatar();
