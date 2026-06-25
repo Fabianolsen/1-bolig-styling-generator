@@ -198,8 +198,20 @@
     background: var(--bg3); border: 1px solid var(--border);
     border-radius: 16px; padding: 16px; margin-bottom: 20px;
   }
-  .graph-title { font-size: 13px; color: var(--text2); font-weight: 600; margin-bottom: 12px; text-transform: uppercase; letter-spacing: .06em; }
+  .graph-title { font-size: 13px; color: var(--text2); font-weight: 600; margin-bottom: 10px; text-transform: uppercase; letter-spacing: .06em; }
   #weight-graph { width: 100%; height: 180px; display: block; }
+
+  .graph-filters {
+    display: flex; gap: 6px; margin-bottom: 12px;
+  }
+  .graph-filter-btn {
+    background: none; border: 1.5px solid var(--border);
+    border-radius: 8px; color: var(--text2); font-size: 12px; font-weight: 600;
+    padding: 5px 12px; cursor: pointer; transition: all .2s;
+  }
+  .graph-filter-btn.active {
+    background: var(--orange); border-color: var(--orange); color: #fff;
+  }
 
   .log-list { display: flex; flex-direction: column; gap: 8px; }
   .log-item {
@@ -325,7 +337,12 @@
     </div>
 
     <div class="graph-card">
-      <div class="graph-title">Siste 365 dager</div>
+      <div class="graph-title">Vektutvikling</div>
+      <div class="graph-filters">
+        <button class="graph-filter-btn" onclick="setGraphFilter(7)" data-days="7">1 uke</button>
+        <button class="graph-filter-btn active" onclick="setGraphFilter(30)" data-days="30">1 mnd</button>
+        <button class="graph-filter-btn" onclick="setGraphFilter(90)" data-days="90">3 mnd</button>
+      </div>
       <svg id="weight-graph" viewBox="0 0 360 180" preserveAspectRatio="none"></svg>
     </div>
 
@@ -410,6 +427,9 @@
 // ── STATE ──────────────────────────────────────────────
 let chatHistory = [];
 let currentScreen = 'chat';
+let graphFilterDays = 30;
+let awaitingPlanConfirm = false;
+let pendingPlanText = null;
 
 const DAYS = ['Mandag','Tirsdag','Onsdag','Torsdag','Fredag','Lørdag','Søndag'];
 
@@ -520,23 +540,89 @@ async function callAPI(messages, system) {
   return d.content[0].text;
 }
 
+const YES_REPLIES = /^(ja|yes|yep|gjerne|ok|okei|sure|selvsagt|absolutt|jes|jep|gjør det|lagre|save)/i;
+const PLAN_KEYWORDS = /(treningsplan|kostholdsplan|ukeplan|program|plan for uke|treningsprogram|ukesplan)/i;
+
 async function sendChat() {
   const text = userInput.value.trim();
   if (!text) return;
   if (!apiKey()) { apiKeyInput.focus(); return; }
   addMsg('user', text);
-  chatHistory.push({ role:'user', content:text });
   userInput.value = ''; userInput.style.height = 'auto';
-  sendBtn.disabled = true; showTyping();
+  sendBtn.disabled = true;
+
+  // Handle plan-save confirmation
+  if (awaitingPlanConfirm) {
+    awaitingPlanConfirm = false;
+    if (YES_REPLIES.test(text)) {
+      showTyping();
+      await savePlanFromChat(pendingPlanText);
+      pendingPlanText = null;
+      hideTyping();
+      sendBtn.disabled = false; userInput.focus();
+      return;
+    } else {
+      pendingPlanText = null;
+      chatHistory.push({ role:'user', content:text });
+      addMsg('coach', 'Ingen problem! Spør meg gjerne om noe annet 💪');
+      chatHistory.push({ role:'assistant', content:'Ingen problem! Spør meg gjerne om noe annet 💪' });
+      sendBtn.disabled = false; userInput.focus();
+      return;
+    }
+  }
+
+  chatHistory.push({ role:'user', content:text });
+  showTyping();
   try {
     const reply = await callAPI(chatHistory,
       'Du er Coach Apex, en entusiastisk og motiverende AI personal trainer. Svar alltid på norsk med konkrete og praktiske treningsråd. Hold svarene konsise og motiverende.');
     hideTyping(); addMsg('coach', reply);
     chatHistory.push({ role:'assistant', content:reply });
+
+    // Check if the reply contains a plan — offer to save it
+    if (PLAN_KEYWORDS.test(reply) && !awaitingPlanConfirm) {
+      awaitingPlanConfirm = true;
+      pendingPlanText = reply;
+      setTimeout(() => {
+        addMsg('coach', 'Vil du at jeg lagrer denne planen i Program-fanen din? 💪');
+        chatHistory.push({ role:'assistant', content:'Vil du at jeg lagrer denne planen i Program-fanen din? 💪' });
+      }, 600);
+    }
   } catch(err) {
     hideTyping(); addMsg('coach', '⚠️ Feil: '+err.message);
   }
   sendBtn.disabled = false; userInput.focus();
+}
+
+async function savePlanFromChat(planText) {
+  try {
+    const parsePrompt = `Konverter denne trenings- og kostholdsplanen til JSON. Svar KUN med gyldig JSON, ingen annen tekst:
+{
+  "days": [
+    {
+      "name": "Mandag",
+      "training": ["Øvelse 1 - 3x10", "Øvelse 2 - 3x12"],
+      "meals": ["Frokost: ...", "Lunsj: ...", "Middag: ...", "Snacks: ..."]
+    }
+  ]
+}
+Planen som skal konverteres:
+${planText}`;
+
+    const json = await callAPI([{role:'user',content:parsePrompt}],
+      'Du er en JSON-konverter. Svar kun med gyldig JSON, ingen forklaring eller annen tekst.');
+
+    const match = json.match(/\{[\s\S]*\}/);
+    if (!match) throw new Error('Kunne ikke parse planen');
+    const data = JSON.parse(match[0]);
+    localStorage.setItem('apex_program', JSON.stringify(data));
+    localStorage.removeItem('apex_checked');
+    localStorage.setItem('apex_week_monday', getMonday());
+    addMsg('coach', 'Planen er nå lagret i Program-fanen din ✅ Trykk på kalender-ikonet for å se den!');
+    chatHistory.push({ role:'assistant', content:'Planen er nå lagret i Program-fanen din ✅' });
+  } catch(err) {
+    addMsg('coach', '⚠️ Klarte ikke lagre planen: '+err.message);
+  }
 }
 
 // ══════════════════════════════════════════════════════
@@ -556,6 +642,16 @@ document.getElementById('log-weight-btn').addEventListener('click', () => {
   saveWeightLog(log); renderWeightScreen();
   document.getElementById('weight-input').value = '';
 });
+
+function setGraphFilter(days) {
+  graphFilterDays = days;
+  document.querySelectorAll('.graph-filter-btn').forEach(btn => {
+    btn.classList.toggle('active', parseInt(btn.dataset.days) === days);
+  });
+  const log = getWeightLog();
+  const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - days);
+  drawGraph(log.filter(e => new Date(e.d) >= cutoff));
+}
 
 function renderWeightScreen() {
   const log = getWeightLog();
@@ -577,10 +673,14 @@ function renderWeightScreen() {
   statDiff.textContent = (diff>0?'+':'')+diff+'kg';
   statDiff.parentElement.style.color = diff > 0 ? '#ff5252' : (diff < 0 ? 'var(--green)' : 'var(--orange)');
 
-  // Graph: last 365 days
-  const cutoff = new Date(); cutoff.setDate(cutoff.getDate()-365);
-  const recent = log.filter(e => new Date(e.d) >= cutoff);
-  drawGraph(recent);
+  // Graph filtered by current selection
+  const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - graphFilterDays);
+  drawGraph(log.filter(e => new Date(e.d) >= cutoff));
+
+  // Sync filter buttons visual state
+  document.querySelectorAll('.graph-filter-btn').forEach(btn => {
+    btn.classList.toggle('active', parseInt(btn.dataset.days) === graphFilterDays);
+  });
 
   // List (last 30, newest first)
   const listEl = document.getElementById('log-list');
